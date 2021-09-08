@@ -73,12 +73,19 @@ Before submitting your pull request, check if all of the following apply:
 
 1. Your DApp has all three required files in the root folder (**main.qml**, **icon.png** and **files.json**).
 2. Your DApp is entirely contained within its folder (this means not locally accessing any files outside root, e.g. `../`).
-3. Your DApp is only using calls from [`QmlApi`](https://github.com/avme/avme-wallet/blob/main/src/qmlwrap/QmlApi.h) and the following internal components from [`qml/components`](https://github.com/avme/avme-wallet/tree/main/src/qml/components):
-  - `AVMEButton`
-  - `AVMEInput`
-  - `AVMEPanel`
-  - `AVMEPopup`
-  - `AVMETokenList`
+3. Your DApp is only using select permitted components from the wallet:
+  - Functions from [`QmlApi`](https://github.com/avme/avme-wallet/blob/main/src/qmlwrap/QmlApi.h)
+  - Components from [`qml/components`](https://github.com/avme/avme-wallet/tree/main/src/qml/components):
+    - `AVMEButton`
+    - `AVMEInput`
+    - `AVMEPanel`
+    - `AVMEPopup`
+    - `AVMEAsyncImage`
+  - Components from [`qml/popups`](https://github.com/avme/avme-wallet/tree/main/src/qml/popups):
+    - `AVMEPopupInfo`
+    - `AVMEPopupYesNo`
+    - `AVMEPopupAssetSelect`
+    - `AVMEPopupConfirmTx` and `AVMEPopupTxProgress` (used together)
 4. Any and all external resources (e.g. images, helper code, etc.) used in your DApp are not malicious and/or harmful.
 5. Your DApp is not using any of the following JS functions:
   - eval()
