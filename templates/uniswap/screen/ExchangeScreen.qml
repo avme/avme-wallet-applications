@@ -92,6 +92,7 @@ AVMEPanel {
   // Helper properties
 
   property string randomID
+  property bool loading: true
 
 
   // Timers for constantly update values
@@ -141,6 +142,7 @@ AVMEPanel {
             pairTokenInAddress == 0x0000000000000000000000000000000000000000 &&
             pairTokenOutAddress == 0x0000000000000000000000000000000000000000) {
             // TODO
+            loading = false
             return
         }
         
@@ -156,6 +158,7 @@ AVMEPanel {
             exchangePanelLoadingPng.visible = false
             allowanceTimer.start()
             reservesTimer.stop()
+            loading = false
             return
           }
         }
@@ -236,10 +239,95 @@ AVMEPanel {
             }
           }
         }
+        loading = false
         exchangePanelApprovalColumn.visible = false
         exchangePanelDetailsColumn.visible = true
         exchangePanelLoadingPng.visible = false
       }
+    }
+  }
+
+  Connections {
+    target: exchangeLeftAssetPopup 
+    function onAboutToHide() {
+      // No need to reload in case of the same asset is selected
+      if (exchangeInfo["left"]["contract"] == exchangeLeftAssetPopup.chosenAssetAddress) {
+        return
+      }
+
+      // Do not allow to set a swap between the same assets
+      if (exchangeInfo["right"]["contract"] == exchangeLeftAssetPopup.chosenAssetAddress) {
+        return
+      }
+      
+      // Edge case for WAVAX
+      if (exchangeLeftAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        exchangeInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
+      } else {
+        exchangeInfo["left"]["allowance"] = "0";
+      }
+      exchangeInfo["left"]["decimals"] = exchangeLeftAssetPopup.chosenAssetDecimals
+      exchangeInfo["left"]["contract"] = exchangeLeftAssetPopup.chosenAssetAddress
+      exchangeInfo["left"]["symbol"] = exchangeLeftAssetPopup.chosenAssetSymbol
+
+      var img = ""
+      if (exchangeLeftAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        img = "qrc:/img/avax_logo.png"
+      } else if (exchangeLeftAssetPopup.chosenAssetAddress == "0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed") {
+        img = "qrc:/img/avme_logo.png"
+      } else {
+        var tmpImg = qmlApi.getARC20TokenImage(exchangeLeftAssetPopup.chosenAssetAddress)
+        img = (tmpImg != "") ? "file:" + tmpImg : "qrc:/img/unknown_token.png"
+      }
+
+      exchangeInfo["left"]["imageSource"] = img
+      exchangeInfo["pairs"] = ([]);
+      exchangeInfo["routing"] = ([]);
+      exchangeInfo["reserves"] = ([]);
+      updateDisplay()
+      fetchAllowanceAndPairs(true)
+    }
+  }
+
+  Connections {
+    target: exchangeRightAssetPopup 
+    function onAboutToHide() {
+      // No need to reload in case of the same asset is selected
+      if (exchangeInfo["right"]["contract"] == exchangeRightAssetPopup.chosenAssetAddress) {
+        return
+      }
+
+      // Do not allow to set a swap between the same assets
+      if (exchangeInfo["left"]["contract"] == exchangeRightAssetPopup.chosenAssetAddress) {
+        return
+      }
+      
+      // Edge case for WAVAX
+      if (exchangeRightAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        exchangeInfo["right"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
+      } else {
+        exchangeInfo["right"]["allowance"] = "0";
+      }
+      exchangeInfo["right"]["decimals"] = exchangeRightAssetPopup.chosenAssetDecimals
+      exchangeInfo["right"]["contract"] = exchangeRightAssetPopup.chosenAssetAddress
+      exchangeInfo["right"]["symbol"] = exchangeRightAssetPopup.chosenAssetSymbol
+
+      var img = ""
+      if (exchangeRightAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        img = "qrc:/img/avax_logo.png"
+      } else if (exchangeRightAssetPopup.chosenAssetAddress == "0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed") {
+        img = "qrc:/img/avme_logo.png"
+      } else {
+        var tmpImg = qmlApi.getARC20TokenImage(exchangeRightAssetPopup.chosenAssetAddress)
+        img = (tmpImg != "") ? "file:" + tmpImg : "qrc:/img/unknown_token.png"
+      }
+
+      exchangeInfo["right"]["imageSource"] = img
+      exchangeInfo["pairs"] = ([]);
+      exchangeInfo["routing"] = ([]);
+      exchangeInfo["reserves"] = ([]);
+      updateDisplay()
+      fetchAllowanceAndPairs(true)
     }
   }
 
@@ -290,6 +378,7 @@ AVMEPanel {
       exchangePanelApprovalColumn.visible = false
       exchangePanelDetailsColumn.visible = false
       exchangePanelLoadingPng.visible = true
+      loading = true
     }
 
     qmlApi.clearAPIRequests(screenName + "_fetchAllowanceAndPairs_" + randomID)
@@ -341,18 +430,18 @@ AVMEPanel {
   }
 
   function updateDisplay() {
-    rightInput.text = ""
-    leftInput.text = ""
-    leftSymbol = exchangeInfo["left"]["symbol"]
-    leftImageSource = exchangeInfo["left"]["imageSource"]
-    leftDecimals = exchangeInfo["left"]["decimals"]
-    leftAllowance = exchangeInfo["left"]["allowance"]
-    leftContract = exchangeInfo["left"]["contract"]
-    rightSymbol = exchangeInfo["right"]["symbol"]
-    rightImageSource = exchangeInfo["right"]["imageSource"]
-    rightDecimals = exchangeInfo["right"]["decimals"]
-    rightAllowance = exchangeInfo["right"]["allowance"]
-    rightContract = exchangeInfo["right"]["contract"]
+    rightInput.text   = ""
+    leftInput.text    = ""
+    leftSymbol        = exchangeInfo["left"]["symbol"]
+    leftImageSource   = exchangeInfo["left"]["imageSource"]
+    leftDecimals      = exchangeInfo["left"]["decimals"]
+    leftAllowance     = exchangeInfo["left"]["allowance"]
+    leftContract      = exchangeInfo["left"]["contract"]
+    rightSymbol       = exchangeInfo["right"]["symbol"]
+    rightImageSource  = exchangeInfo["right"]["imageSource"]
+    rightDecimals     = exchangeInfo["right"]["decimals"]
+    rightAllowance    = exchangeInfo["right"]["allowance"]
+    rightContract     = exchangeInfo["right"]["contract"]
     updateBalances()
 
     // Check allowance to see if we should ask the user to allow it.
@@ -570,13 +659,32 @@ AVMEPanel {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.margins: 20
 
-      AVMEAsyncImage {
-        id: leftLogo
-        height: 48
-        width: 48
+      Rectangle {
+        id: leftLogoRectangle
+        height: 64
+        width: 64
         anchors.verticalCenter: parent.verticalCenter
+        color: "transparent"
+        radius: 5
         anchors.margins: 20
-        imageSource: leftImageSource
+
+        AVMEAsyncImage {
+          id: leftLogo
+          height: 48
+          width: 48
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.horizontalCenter: parent.horizontalCenter
+          imageSource: leftImageSource
+        }
+        MouseArea { 
+          id: leftLogoMouseArea
+          anchors.fill: parent
+          hoverEnabled: true
+          enabled: (!loading)
+          onEntered: leftLogoRectangle.color = "#1d1827"
+          onExited: leftLogoRectangle.color = "transparent"
+          onClicked: { exchangeLeftAssetPopup.open() }
+        }
       }
 
       Rectangle {
@@ -586,7 +694,6 @@ AVMEPanel {
         anchors.verticalCenter: parent.verticalCenter
         color: "transparent"
         radius: 5
-
         Image {
           id: swapOrderImage
           height: 48
@@ -601,20 +708,37 @@ AVMEPanel {
           id: swapOrderMouseArea
           anchors.fill: parent
           hoverEnabled: true
-          enabled: true
+          enabled: (!loading)
           onEntered: swapOrderRectangle.color = "#1d1827"
           onExited: swapOrderRectangle.color = "transparent" 
           onClicked: { swapOrder() }
         }
       }
-
-      AVMEAsyncImage {
-        id: rightLogo
-        height: 48
-        width: 48
+      Rectangle {
+        id: rightLogoRectangle
+        height: 64
+        width: 64
         anchors.verticalCenter: parent.verticalCenter
         anchors.margins: 20
-        imageSource: rightImageSource
+        color: "transparent"
+        radius: 5
+        AVMEAsyncImage {
+          id: rightLogo
+          height: 48
+          width: 48
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.horizontalCenter: parent.horizontalCenter
+          imageSource: rightImageSource
+        }
+        MouseArea { 
+          id: rightLogoMouseArea
+          anchors.fill: parent
+          hoverEnabled: true
+          enabled: (!loading)
+          onEntered: rightLogoRectangle.color = "#1d1827"
+          onExited: rightLogoRectangle.color = "transparent"
+          onClicked: { exchangeRightAssetPopup.open() }
+        }
       }
     }
     Text {

@@ -41,6 +41,17 @@ Item {
     quitBtn.onClicked: closeScreen()
   }
 
+  // Popups are *required* to be declared on the root window
+  // due to centralization issues.
+  AVMEPopupAssetSelect {
+    id: exchangeLeftAssetPopup
+    defaultToAVME: false
+  }
+  AVMEPopupAssetSelect {
+    id: exchangeRightAssetPopup
+    defaultToAVME: false
+  }
+
   Item {
     id: uniswapTemplateContent
     anchors.top: parent.top
