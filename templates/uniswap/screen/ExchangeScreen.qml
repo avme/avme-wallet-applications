@@ -137,6 +137,30 @@ AVMEPanel {
         
         exchangeInfo["left"]["allowance"] = leftAllowance
         exchangeInfo["right"]["allowance"] = rightAllowance
+        if (!(exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
+          var asset = accountHeader.tokenList[exchangeInfo["left"]["contract"]]
+          if (+qmlSystem.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +leftAllowance) {
+            exchangeInfo["left"]["approved"] = false
+          } else {
+            exchangeInfo["left"]["approved"] = true
+          }
+        } else {
+          // WAVAX does not require approval
+          exchangeInfo["left"]["approved"] = true
+        }
+
+        if (!(exchangeInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
+          var asset = accountHeader.tokenList[exchangeInfo["right"]["contract"]]
+          if (+qmlSystem.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +rightAllowance) {
+            exchangeInfo["right"]["approved"] = false
+          } else {
+            exchangeInfo["right"]["approved"] = true
+          }
+        } else {
+          // WAVAX does not require approval
+          exchangeInfo["right"]["approved"] = true
+        }
+
         // Add edge case situation where the token is not available on the DEX
         if (pairAddress == 0x0000000000000000000000000000000000000000 &&
             pairTokenInAddress == 0x0000000000000000000000000000000000000000 &&
@@ -149,33 +173,28 @@ AVMEPanel {
 
         // Check allowance to see if we can proceed collecting further information
         // Only check if it is a token and not WAVAX, as WAVAX does NOT require allowance
-        if (!(exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
-          var asset = accountHeader.tokenList[exchangeInfo["left"]["contract"]]
-          if (+qmlSystem.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +leftAllowance) {
-            // Required allowance on the input asset!
-            exchangePanelApprovalColumn.visible = true
-            exchangePanelDetailsColumn.visible = false
-            exchangePanelLoadingPng.visible = false
-            allowanceTimer.start()
-            reservesTimer.stop()
-            loading = false
-            return
-          }
+        if (!exchangeInfo["left"]["approved"]) {
+          // Required allowance on the input asset!
+          reservesTimer.start()
+        } else {
+          allowanceTimer.stop()
         }
         // Add the pair contracts and proper routing for the contract call
-        if (pairAddress == 0x0000000000000000000000000000000000000000) {
-          exchangeInfo["pairs"].push(pairTokenInAddress)
-          exchangeInfo["pairs"].push(pairTokenOutAddress)
-          exchangeInfo["routing"].push(exchangeInfo["left"]["contract"])
-          exchangeInfo["routing"].push("0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") // WAVAX
-          exchangeInfo["routing"].push(exchangeInfo["right"]["contract"])
-        } else {
-          exchangeInfo["pairs"].push(pairAddress)
-          exchangeInfo["routing"].push(exchangeInfo["left"]["contract"])
-          exchangeInfo["routing"].push(exchangeInfo["right"]["contract"])
+        // Only allow to push new pairs if the array is empty.
+        if (exchangeInfo["pairs"].length == 0) {
+          if (pairAddress == 0x0000000000000000000000000000000000000000) {
+            exchangeInfo["pairs"].push(pairTokenInAddress)
+            exchangeInfo["pairs"].push(pairTokenOutAddress)
+            exchangeInfo["routing"].push(exchangeInfo["left"]["contract"])
+            exchangeInfo["routing"].push("0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") // WAVAX
+            exchangeInfo["routing"].push(exchangeInfo["right"]["contract"])
+          } else {
+            exchangeInfo["pairs"].push(pairAddress)
+            exchangeInfo["routing"].push(exchangeInfo["left"]["contract"])
+            exchangeInfo["routing"].push(exchangeInfo["right"]["contract"])
+          }
         }
         reservesTimer.start()
-
       } else if (requestID == screenName + "_fetchReserves_" + randomID) {
         var resp = JSON.parse(answer)
         exchangeInfo["reserves"] = ([])
@@ -239,10 +258,17 @@ AVMEPanel {
             }
           }
         }
+        if (exchangeInfo["left"]["approved"]) {
+          exchangePanelApprovalColumn.visible = false
+          exchangePanelDetailsColumn.visible = true
+          exchangePanelLoadingPng.visible = false
+        } else {
+          exchangePanelApprovalColumn.visible = true
+          exchangePanelDetailsColumn.visible = false
+          exchangePanelLoadingPng.visible = false
+          allowanceTimer.start()
+        }
         loading = false
-        exchangePanelApprovalColumn.visible = false
-        exchangePanelDetailsColumn.visible = true
-        exchangePanelLoadingPng.visible = false
       }
     }
   }
@@ -430,6 +456,7 @@ AVMEPanel {
   }
 
   function updateDisplay() {
+    randomID = qmlApi.getRandomID()
     rightInput.text   = ""
     leftInput.text    = ""
     leftSymbol        = exchangeInfo["left"]["symbol"]
@@ -446,24 +473,21 @@ AVMEPanel {
 
     // Check allowance to see if we should ask the user to allow it.
     // Only check if it is a token and not WAVAX, as WAVAX does NOT require allowance
-    if (!(exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
-      var asset = accountHeader.tokenList[exchangeInfo["left"]["contract"]]
-      if (+qmlSystem.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +leftAllowance) {
-        // Reset the randomID, if there is a reserves request pending on the C++ side
-        // It won't set the screens to visible again
-        randomID = qmlApi.getRandomID()
-        // Required allowance on the input asset!
-        exchangePanelApprovalColumn.visible = true
-        exchangePanelDetailsColumn.visible = false
-        exchangePanelLoadingPng.visible = false
-        reservesTimer.stop()
-        allowanceTimer.start()
-      }
+    if (!exchangeInfo["left"]["approved"]) {
+      // Reset the randomID, if there is a reserves request pending on the C++ side
+      // It won't set the screens to visible again
+      // Required allowance on the input asset!
+      exchangePanelApprovalColumn.visible = true
+      exchangePanelDetailsColumn.visible = false
+      exchangePanelLoadingPng.visible = false
+      reservesTimer.start()
+      allowanceTimer.start()
     } else {
       // Set the screens back to visible, if allowed.
-        exchangePanelApprovalColumn.visible = false
-        exchangePanelDetailsColumn.visible = true
-        exchangePanelLoadingPng.visible = false
+      exchangePanelApprovalColumn.visible = false
+      exchangePanelDetailsColumn.visible = true
+      exchangePanelLoadingPng.visible = false
+      allowanceTimer.stop()
     }
   }
 
