@@ -80,6 +80,7 @@ AVMEPanel {
   property double swapImpact: 0
 
   // Transaction information
+  property string desiredSlippage: slippageSettings.slippage
   property string to
   property string coinValue
   property string txData
@@ -97,6 +98,7 @@ AVMEPanel {
 
   // Timers for constantly update values
 
+  Timer { id: balanceTimer; interval: 10; repeat: true; onTriggered: (updateBalances()) }
   Timer { id: reservesTimer; interval: 500; repeat: true; onTriggered: (fetchReserves()) }
   Timer { id: allowanceTimer; interval: 100; repeat: true; onTriggered: (fetchAllowanceAndPairs(false)) }
 
@@ -139,7 +141,7 @@ AVMEPanel {
         exchangeInfo["right"]["allowance"] = rightAllowance
         if (!(exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
           var asset = accountHeader.tokenList[exchangeInfo["left"]["contract"]]
-          if (+qmlSystem.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +leftAllowance) {
+          if (+qmlApi.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +leftAllowance) {
             exchangeInfo["left"]["approved"] = false
           } else {
             exchangeInfo["left"]["approved"] = true
@@ -151,7 +153,7 @@ AVMEPanel {
 
         if (!(exchangeInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
           var asset = accountHeader.tokenList[exchangeInfo["right"]["contract"]]
-          if (+qmlSystem.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +rightAllowance) {
+          if (+qmlApi.fixedPointToWei(asset["rawBalance"], asset["decimals"]) >= +rightAllowance) {
             exchangeInfo["right"]["approved"] = false
           } else {
             exchangeInfo["right"]["approved"] = true
@@ -380,6 +382,7 @@ AVMEPanel {
     // the exchangeInfo var
     updateDisplay()
     fetchAllowanceAndPairs(true)
+    balanceTimer.start()
   }
 
   function fetchReserves() {
@@ -650,6 +653,143 @@ AVMEPanel {
   function calculatePriceImpactText(amountIn) {
     return calculateExchangePriceImpact(exchangeInfo["reserves"][0]["reservesIn"], amountIn, exchangeInfo["reserves"][0]["decimalsIn"])
   }
+  
+  // ======================================================================
+  // TRANSACTION RELATED FUNCTIONS
+  // ======================================================================
+
+  function approveTx() {
+    to = exchangeInfo["left"]["contract"]
+    coinValue = 0
+    gas = 70000
+    info = "You will Approve <b>" + exchangeInfo["left"]["symbol"] + "<\b> on " + exchangeName + " Router Contract"
+    historyInfo = "Approve <b>" + exchangeInfo["left"]["symbol"] + "<\b< on " + exchangeName
+
+    // approve(address,uint256)
+    var ethCallJson = ({})
+    ethCallJson["function"] = "approve(address,uint256)"
+    ethCallJson["args"] = []
+    ethCallJson["args"].push(router)
+    ethCallJson["args"].push(qmlApi.MAX_U256_VALUE())
+    ethCallJson["types"] = []
+    ethCallJson["types"].push("address")
+    ethCallJson["types"].push("uint*")
+    var ethCallString = JSON.stringify(ethCallJson)
+    var ABI = qmlApi.buildCustomABI(ethCallString)
+    txData = ABI
+  }
+
+function swapTx(amountIn, amountOut) {
+    to = router
+    gas = 500000
+    info = "You will Swap <b>" + amountIn + " " + exchangeInfo["left"]["symbol"] + "<\b> to <b>" +
+    amountOut + " " + exchangeInfo["right"]["symbol"]   + "<\b> on Pangolin"
+    historyInfo = "Swap <b>" + exchangeInfo["left"]["symbol"] +
+    "<\b> to <b>" + exchangeInfo["right"]["symbol"] + "<\b>"
+    if (exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      coinValue = String(amountIn)
+      var ethCallJson = ({})
+      var routing = ([])
+      // swapExactAVAXForTokens(uint256,address[],address,uint256)
+      ethCallJson["function"] = "swapExactAVAXForTokens(uint256,address[],address,uint256)"
+      ethCallJson["args"] = []
+      // uint256 amountOutMin
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(qmlApi.fixedPointToWei(amountOut, exchangeInfo["right"]["decimals"]), desiredSlippage)))
+      // address[] path
+      ethCallJson["args"].push(exchangeInfo["routing"])
+      // address to
+      ethCallJson["args"].push(accountHeader.currentAddress)
+      // uint256 deadline, 60 minutes deadline
+      ethCallJson["args"].push(String((+qmlApi.getCurrentUnixTime() + 3600) * 1000))
+      ethCallJson["types"] = []
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("address[]")
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      var ethCallString = JSON.stringify(ethCallJson)
+      var ABI = qmlApi.buildCustomABI(ethCallString)
+      txData = ABI
+      return;
+    }
+    if (exchangeInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      coinValue = 0
+      var ethCallJson = ({})
+      var routing = ([])
+      // swapExactTokensForAVAX(uint256,uint256,address[],address,uint256)
+      ethCallJson["function"] = "swapExactTokensForAVAX(uint256,uint256,address[],address,uint256)"
+      ethCallJson["args"] = []
+      // uint256 amountIn
+      ethCallJson["args"].push(String(qmlApi.fixedPointToWei(amountIn, exchangeInfo["left"]["decimals"])))
+      // amountOutMin
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(qmlApi.fixedPointToWei(amountOut, 18), desiredSlippage)))
+      // address[] path
+      ethCallJson["args"].push(exchangeInfo["routing"])
+      // address to
+      ethCallJson["args"].push(accountHeader.currentAddress)
+      // uint256 deadline 60 minutes deadline
+      ethCallJson["args"].push(String((+qmlApi.getCurrentUnixTime() + 3600) * 1000))
+      ethCallJson["types"] = []
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("address[]")
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      var ethCallString = JSON.stringify(ethCallJson)
+      var ABI = qmlApi.buildCustomABI(ethCallString)
+      txData = ABI
+      return;
+    }
+    if (exchangeInfo["left"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" && 
+        exchangeInfo["right"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      coinValue = 0
+      var ethCallJson = ({})
+      var routing = ([])
+      ethCallJson["function"] = "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"
+      ethCallJson["args"] = []
+      // uint256 amountIn
+      ethCallJson["args"].push(String(qmlApi.fixedPointToWei(amountIn, exchangeInfo["left"]["decimals"])))
+      // uint256 amountOutMin
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(qmlApi.fixedPointToWei(amountOut, exchangeInfo["right"]["decimals"]), desiredSlippage)))
+      // address[] path
+      ethCallJson["args"].push(exchangeInfo["routing"])
+      // address to
+      ethCallJson["args"].push(accountHeader.currentAddress)
+      // uint256 deadline 60 minutes deadline
+      ethCallJson["args"].push(String((+qmlApi.getCurrentUnixTime() + 3600) * 1000))
+      ethCallJson["types"] = []
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("address[]")
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      var ethCallString = JSON.stringify(ethCallJson)
+      var ABI = qmlApi.buildCustomABI(ethCallString)
+      txData = ABI
+      return;
+    }
+  }
+
+  function calculateTransactionCost(gasLimit, amountIn) {
+    var transactionFee = qmlApi.floor(qmlApi.mul(gasLimit, (+gasPrice * 1000000000)))
+    var WeiWAVAXBalance = qmlApi.floor(qmlApi.fixedPointToWei(accountHeader.coinRawBalance,18))
+    if (+transactionFee > +WeiWAVAXBalance) {
+      return false
+    }
+
+    // Edge case for WAVAX
+    if (exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      var totalCost = qmlApi.weiToFixedPoint(qmlApi.sum(transactionFee, qmlApi.fixedPointToWei(amountIn,18)),18)
+      if (+totalCost > +accountHeader.coinRawBalance) {
+        return false
+      }
+    } else { 
+      if (+amountIn > +accountHeader.tokenList[exchangeInfo["left"]["contract"]]["rawBalance"]) {
+        return false
+      }
+    }
+    return true
+  }
+  
 
   // ======================================================================
   // HEADER
@@ -831,7 +971,7 @@ AVMEPanel {
       text: "You need to approve your <br>Account in order to swap <b>"
       + leftSymbol + "</b>."
       + "<br>This operation will have <br>a total gas cost of:<br><b>"
-      + qmlSystem.calculateTransactionCost("0", "70000", gasPrice)
+      + qmlApi.weiToFixedPoint(qmlApi.floor(qmlApi.mul("70000", (gasPrice * 1000000000))),18)
       + " AVAX</b>"
     }
 
@@ -839,10 +979,28 @@ AVMEPanel {
       id: btnApprove
       width: parent.width
       enabled: (+accountHeader.coinRawBalance >=
-        +qmlSystem.calculateTransactionCost("0", "70000", gasPrice)
+        +qmlApi.weiToFixedPoint(qmlApi.floor(qmlApi.mul("70000", (gasPrice * 1000000000))),18)
       )
       anchors.horizontalCenter: parent.horizontalCenter
       text: (enabled) ? "Approve" : "Not enough funds"
+      onClicked: {
+        approveTx()
+        if (calculateTransactionCost(70000, "0")) {
+          confirmTransactionPopup.setData(
+            to,
+            coinValue,
+            txData,
+            gas,
+            gasPrice,
+            true,
+            info,
+            historyInfo
+          )
+          confirmTransactionPopup.open()
+        } else {
+          fundsPopup.open();
+        }
+      }
     }
   }
 
@@ -969,6 +1127,53 @@ AVMEPanel {
       visible: true
       enabled: ((rightInput.acceptableInput && (swapImpact <= 10.0 || ignoreImpactCheck.checked)) && +rightInput.text != 0)
       text: (swapImpact <= 10.0 || ignoreImpactCheck.checked) ? "Make Swap" : "Price impact too high"
+      onClicked: {
+        swapTx(leftInput.text, rightInput.text)
+        if (calculateTransactionCost(500000, leftInput.text)) {
+          confirmTransactionPopup.setData(
+            to,
+            coinValue,
+            txData,
+            gas,
+            gasPrice,
+            true,
+            info,
+            historyInfo
+          )
+          confirmTransactionPopup.open()
+        } else {
+          fundsPopup.open();
+        }
+      }
+    }
+  }
+  Rectangle {
+    id: settingsRectangle
+    height: 48
+    width: 48
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.topMargin: 32
+    anchors.rightMargin: 32
+    color: "transparent"
+    radius: 5
+    Image {
+      id: slippageSettingsImage
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.verticalCenter: parent.verticalCenter
+      width: 32
+      height: 32
+      source: "qrc:/img/icons/Icon_Settings.png"
+    }
+    MouseArea {
+      id: settingsMouseArea
+      anchors.fill: parent
+      hoverEnabled: true
+      onEntered: settingsRectangle.color = "#1d1827"
+      onExited: settingsRectangle.color = "transparent"
+      onClicked: {
+        slippageSettings.open();
+      }
     }
   }
 }

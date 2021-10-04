@@ -21,6 +21,7 @@ Item {
   property string factory: "0xefa94DE7a4656D787667C749f7E1223D71E9FD88"
   property string exchangeFee: "3" // 0.3% 
   property string screenName: "UniswapTemplate"
+  property string exchangeName: "Pangolin"
 
   Component.onCompleted: {
     exchangeScreen.visible = true
@@ -50,6 +51,23 @@ Item {
   AVMEPopupAssetSelect {
     id: exchangeRightAssetPopup
     defaultToAVME: false
+  }
+
+  AVMEPopupConfirmTx {
+    id: confirmTransactionPopup
+  }
+
+  AVMEPopupTxProgress {
+    id: txProgressPopup
+  }
+  AVMEPopupExchangeSettings {
+    id: slippageSettings
+  }
+
+  AVMEPopupInfo {
+    id: fundsPopup
+    icon: "qrc:/img/warn.png"
+    info: "Insufficient funds. Please check your inputs."
   }
 
   Item {
