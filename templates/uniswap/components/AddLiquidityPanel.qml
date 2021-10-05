@@ -116,7 +116,7 @@ AVMEPanel {
           leftAllowed = true
         } else {
           var asset = accountHeader.tokenList[leftContract]
-          leftAllowed = (+leftAllowance > +qmlSystem.fixedPointToWei(
+          leftAllowed = (+leftAllowance > +qmlApi.fixedPointToWei(
             asset["rawBalance"], leftDecimals
           ))
         }
@@ -124,7 +124,7 @@ AVMEPanel {
           rightAllowed = true
         } else {
           var asset = accountHeader.tokenList[rightContract]
-          rightAllowed = (+rightAllowance > +qmlSystem.fixedPointToWei(
+          rightAllowed = (+rightAllowance > +qmlApi.fixedPointToWei(
             asset["rawBalance"], rightDecimals
           ))
         }
@@ -324,6 +324,7 @@ AVMEPanel {
 
   function fetchAllowancesAndPair(firstCall) {
     if (firstCall) {
+      randomID = qmlApi.getRandomID()
       addLiquidityDetailsColumn.visible = false
       addLiquidityApprovalColumn.visible = false
       addLiquidityPairUnavailable.visible = false
@@ -332,7 +333,6 @@ AVMEPanel {
       reservesTimer.stop()
       allowanceTimer.stop()
     }
-    randomID = qmlApi.getRandomID()
 
     qmlApi.clearAPIRequests(screenName + "_" + title + "_" +  "_fetchAllowancesAndPair_" + randomID)
 
@@ -454,6 +454,147 @@ AVMEPanel {
     } else if (lowerAddress == addLiquidityInfo["right"]["contract"]) {
       addRightAssetInput.text = rightMax
       addLeftAssetInput.text = calculateExchangeAmountText(rightMax, false)
+    }
+  }
+
+  function calculateTransactionCost(gasLimit, amountInLeft, amountInRight) {
+    var transactionFee = qmlApi.floor(qmlApi.mul(gasLimit, (+gasPrice * 1000000000)))
+    var WeiWAVAXBalance = qmlApi.floor(qmlApi.fixedPointToWei(accountHeader.coinRawBalance,18))
+    if (+transactionFee > +WeiWAVAXBalance) {
+      return false
+    }
+
+    // Edge case for WAVAX
+    if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" ||
+        addLiquidityInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7"
+        ) {
+      var totalCost = qmlApi.weiToFixedPoint(qmlApi.sum(transactionFee, qmlApi.fixedPointToWei(
+        ((addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") ?
+          amountInLeft :
+          amountInRight
+        )
+        ,18)),18)
+      if (+totalCost > +accountHeader.coinRawBalance) {
+        return false
+      }
+    } 
+
+    if (addLiquidityInfo["left"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      if (+amountInLeft > +accountHeader.tokenList[addLiquidityInfo["left"]["contract"]]["rawBalance"]) {
+        return false
+      }
+    }
+    if (addLiquidityInfo["right"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      if (+amountInRight > +accountHeader.tokenList[addLiquidityInfo["right"]["contract"]]["rawBalance"]) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  function approveTx(contract) {
+    to = contract
+    coinValue = 0
+    gas = 70000
+    var ethCallJson = ({})
+    ethCallJson["function"] = "approve(address,uint256)"
+    ethCallJson["args"] = []
+    ethCallJson["args"].push(router)
+    ethCallJson["args"].push(qmlApi.MAX_U256_VALUE())
+    ethCallJson["types"] = []
+    ethCallJson["types"].push("address")
+    ethCallJson["types"].push("uint*")
+    var ethCallString = JSON.stringify(ethCallJson)
+    var ABI = qmlApi.buildCustomABI(ethCallString)
+    txData = ABI
+  }
+
+  function addLiquidityTx() {
+    to = router
+    gas = 500000
+    info = "You will Add <b>" + addLeftAssetInput.text + " " + leftSymbol + "<\b> <br>and<br> <b>"
+    info += addRightAssetInput.text + " " + rightSymbol + "<\b> on Pangolin Liquidity Pool"
+    historyInfo = "Add <b>" + leftSymbol + "<\b> and <b>" + rightSymbol + "<\b> to " + exchangeName + " Liquidity"
+    if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" ||
+        addLiquidityInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      var ethCallJson = ({})
+      ethCallJson["function"] = "addLiquidityAVAX(address,uint256,uint256,uint256,address,uint256)"
+      ethCallJson["args"] = []
+      // Token
+      if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        ethCallJson["args"].push(addLiquidityInfo["right"]["contract"])
+      } else {
+        ethCallJson["args"].push(addLiquidityInfo["left"]["contract"])
+      }
+      // amountTokenDesired
+      var amountTokenDesired
+      if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        amountTokenDesired = qmlApi.fixedPointToWei(addRightAssetInput.text, addLiquidityInfo["right"]["decimals"])
+      } else {
+        amountTokenDesired = qmlApi.fixedPointToWei(addLeftAssetInput.text, addLiquidityInfo["left"]["decimals"])
+      }
+      ethCallJson["args"].push(String(amountTokenDesired))
+      // amountTokenMin
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(amountTokenDesired, desiredSlippage))) // 1% Slippage
+      // amountAVAXMin
+      var amountAVAX
+      if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+        amountAVAX = qmlApi.fixedPointToWei(addLeftAssetInput.text,18)
+      } else {
+        amountAVAX = qmlApi.fixedPointToWei(addRightAssetInput.text,18)
+      }
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(amountAVAX, desiredSlippage)))
+      // to
+      ethCallJson["args"].push(accountHeader.currentAddress)
+      // deadline
+      ethCallJson["args"].push(qmlApi.mul(qmlApi.sum(qmlApi.getCurrentUnixTime(),3600),1000))
+      ethCallJson["types"] = []
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      var ethCallString = JSON.stringify(ethCallJson)
+      var ABI = qmlApi.buildCustomABI(ethCallString)
+      coinValue = qmlApi.weiToFixedPoint(amountAVAX, 18)
+      txData = ABI
+    } else {
+      var ethCallJson = ({})
+      ethCallJson["function"] = "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)"
+      ethCallJson["args"] = []
+      // tokenA
+      ethCallJson["args"].push(addLiquidityInfo["left"]["contract"])
+      // tokenB
+      ethCallJson["args"].push(addLiquidityInfo["right"]["contract"])
+      // amountADesired
+      var amountADesired = qmlApi.fixedPointToWei(addLeftAssetInput.text, addLiquidityInfo["left"]["decimals"])
+      ethCallJson["args"].push(amountADesired)
+      // amountBDesired
+      var amountBDesired = qmlApi.fixedPointToWei(addRightAssetInput.text, addLiquidityInfo["right"]["decimals"])
+      ethCallJson["args"].push(amountBDesired)
+      // amountAMin
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(amountADesired, desiredSlippage))) // 1% Slippage
+      // amountBMin
+      ethCallJson["args"].push(qmlApi.floor(qmlApi.mul(amountBDesired, desiredSlippage))) // 1% Slippage
+      // to
+      ethCallJson["args"].push(accountHeader.currentAddress)
+      // deadline
+      ethCallJson["args"].push(qmlApi.mul(qmlApi.sum(qmlApi.getCurrentUnixTime(),3600),1000))
+      ethCallJson["types"] = []
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("uint*")
+      ethCallJson["types"].push("address")
+      ethCallJson["types"].push("uint*")
+      var ethCallString = JSON.stringify(ethCallJson)
+      var ABI = qmlApi.buildCustomABI(ethCallString)
+      coinValue = "0"
+      txData = ABI
     }
   }
 
@@ -644,7 +785,24 @@ AVMEPanel {
       )
       anchors.horizontalCenter: parent.horizontalCenter
       text: (enabled) ? "Approve " + leftSymbol : "Not enough funds"
-      onClicked: { }
+      onClicked: { 
+        approveTx(addLiquidityInfo["left"]["contract"])
+        if (calculateTransactionCost(70000, "0", "0")) {
+          confirmTransactionPopup.setData(
+            to,
+            coinValue,
+            txData,
+            gas,
+            gasPrice,
+            true,
+            info,
+            historyInfo
+          )
+          confirmTransactionPopup.open()
+        } else {
+          fundsPopup.open();
+        }
+      }
     }
     AVMEButton {
       id: approveRightAssetBtn
@@ -655,7 +813,24 @@ AVMEPanel {
       )
       anchors.horizontalCenter: parent.horizontalCenter
       text: (enabled) ? "Approve " + rightSymbol : "Not enough funds"
-      onClicked: { }
+      onClicked: { 
+        approveTx(addLiquidityInfo["right"]["contract"])
+        if (calculateTransactionCost(70000, "0", "0")) {
+          confirmTransactionPopup.setData(
+            to,
+            coinValue,
+            txData,
+            gas,
+            gasPrice,
+            true,
+            info,
+            historyInfo
+          )
+          confirmTransactionPopup.open()
+        } else {
+          fundsPopup.open();
+        }
+      }
     }
   }
 
@@ -742,7 +917,24 @@ AVMEPanel {
       anchors.horizontalCenter: parent.horizontalCenter
       enabled: (addLeftAssetInput.acceptableInput && addRightAssetInput.acceptableInput)
       text: "Add to the pool"
-      onClicked: { }
+      onClicked: {
+        addLiquidityTx()
+        if (calculateTransactionCost(500000, addLeftAssetInput.text, addRightAssetInput.text)) {
+          confirmTransactionPopup.setData(
+            to,
+            coinValue,
+            txData,
+            gas,
+            gasPrice,
+            true,
+            info,
+            historyInfo
+          )
+          confirmTransactionPopup.open()
+        } else {
+          fundsPopup.open();
+        }
+      }
     }
   }
 
