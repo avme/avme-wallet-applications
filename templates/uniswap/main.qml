@@ -22,6 +22,7 @@ Item {
   property string exchangeFee: "3" // 0.3% 
   property string screenName: "UniswapTemplate"
   property string exchangeName: "Pangolin"
+  property string exchangeLogo: "images/exchangeLogo.png"
 
   Component.onCompleted: {
     exchangeScreen.visible = true
@@ -52,6 +53,16 @@ Item {
     id: exchangeRightAssetPopup
     defaultToAVME: false
   }
+
+  AVMEPopupAssetSelect {
+    id: addLiquidityLeftAssetPopup
+    defaultToAVME: false
+  }
+  AVMEPopupAssetSelect {
+    id: addLiquidityRightAssetPopup
+    defaultToAVME: false
+  }
+
 
   AVMEPopupConfirmTx {
     id: confirmTransactionPopup

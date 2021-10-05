@@ -106,7 +106,7 @@ AVMEPanel {
   Connections {
     target: qmlApi
     function onApiRequestAnswered(answer, requestID) {
-      if (requestID == screenName + "_fetchAllowanceAndPairs_" + randomID) {
+      if (requestID == screenName + "_" + title + "_" + "_fetchAllowanceAndPairs_" + randomID) {
         // Parse the answer as a JSON
         var respArr = JSON.parse(answer)
         var leftAllowance = ""
@@ -167,7 +167,10 @@ AVMEPanel {
         if (pairAddress == 0x0000000000000000000000000000000000000000 &&
             pairTokenInAddress == 0x0000000000000000000000000000000000000000 &&
             pairTokenOutAddress == 0x0000000000000000000000000000000000000000) {
-            // TODO
+            exchangePanelApprovalColumn.visible = false
+            exchangePanelDetailsColumn.visible = false
+            exchangePanelLoadingPng.visible = false
+            exchangePanelUnavailablePair.visible = true
             loading = false
             return
         }
@@ -197,7 +200,7 @@ AVMEPanel {
           }
         }
         reservesTimer.start()
-      } else if (requestID == screenName + "_fetchReserves_" + randomID) {
+      } else if (requestID == screenName + "_" + title + "_" +  "_fetchReserves_" + randomID) {
         var resp = JSON.parse(answer)
         exchangeInfo["reserves"] = ([])
         if (exchangeInfo["pairs"].length == 1) {
@@ -264,10 +267,12 @@ AVMEPanel {
           exchangePanelApprovalColumn.visible = false
           exchangePanelDetailsColumn.visible = true
           exchangePanelLoadingPng.visible = false
+          exchangePanelUnavailablePair.visible = false
         } else {
           exchangePanelApprovalColumn.visible = true
           exchangePanelDetailsColumn.visible = false
           exchangePanelLoadingPng.visible = false
+          exchangePanelUnavailablePair.visible = false
           allowanceTimer.start()
         }
         loading = false
@@ -389,13 +394,13 @@ AVMEPanel {
     if (exchangeInfo["pairs"].length == 2) {
       // id 1 == left/WAVAX pair
       // id 2 == right/WAVAX pair
-      qmlApi.buildGetReservesReq(exchangeInfo["pairs"][0], screenName + "_fetchReserves_" + randomID)
-      qmlApi.buildGetReservesReq(exchangeInfo["pairs"][1], screenName + "_fetchReserves_" + randomID)
+      qmlApi.buildGetReservesReq(exchangeInfo["pairs"][0], screenName + "_" + title + "_" +  "_fetchReserves_" + randomID)
+      qmlApi.buildGetReservesReq(exchangeInfo["pairs"][1], screenName + "_" + title + "_" +  "_fetchReserves_" + randomID)
     } else {
       // id 1 == left/right pair
-      qmlApi.buildGetReservesReq(exchangeInfo["pairs"][0], screenName + "_fetchReserves_" + randomID)
+      qmlApi.buildGetReservesReq(exchangeInfo["pairs"][0], screenName + "_" + title + "_" +  "_fetchReserves_" + randomID)
     }
-    qmlApi.doAPIRequests(screenName + "_fetchReserves_" + randomID)
+    qmlApi.doAPIRequests(screenName + "_" + title + "_" +  "_fetchReserves_" + randomID)
 
   }
 
@@ -406,11 +411,12 @@ AVMEPanel {
       randomID = qmlApi.getRandomID()
       exchangePanelApprovalColumn.visible = false
       exchangePanelDetailsColumn.visible = false
+      exchangePanelUnavailablePair.visible = false 
       exchangePanelLoadingPng.visible = true
       loading = true
     }
 
-    qmlApi.clearAPIRequests(screenName + "_fetchAllowanceAndPairs_" + randomID)
+    qmlApi.clearAPIRequests(screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID)
     // Get allowance for inToken and reserves for all
     // Including reserves for both in/out tokens against WAVAX
 
@@ -419,35 +425,35 @@ AVMEPanel {
       exchangeInfo["left"]["contract"],
       accountHeader.currentAddress,
       router,
-      screenName + "_fetchAllowanceAndPairs_" + randomID
+      screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID
     )
     // Allowance for rightAsset
     qmlApi.buildGetAllowanceReq(
       exchangeInfo["right"]["contract"],
       accountHeader.currentAddress,
       router,
-      screenName + "_fetchAllowanceAndPairs_" + randomID
+      screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID
     )
     // Pair contract for left/right
     qmlApi.buildGetPairReq(
       exchangeInfo["left"]["contract"],
       exchangeInfo["right"]["contract"],
       factory,
-      screenName + "_fetchAllowanceAndPairs_" + randomID
+      screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID
     )
     // Pair contract for left/WAVAX
     qmlApi.buildGetPairReq(
       exchangeInfo["left"]["contract"],
       "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
       factory,
-      screenName + "_fetchAllowanceAndPairs_" + randomID
+      screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID
     )
     // Pair contract for right/WAVAX
     qmlApi.buildGetPairReq(
       "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
       exchangeInfo["right"]["contract"],
       factory,
-      screenName + "_fetchAllowanceAndPairs_" + randomID
+      screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID
     )
     // id 1: allowance for left
     // id 2: allowance for right
@@ -455,7 +461,7 @@ AVMEPanel {
     // id 4: Pair contract for left/WAVAX
     // id 5: Pair contract for right/WAVAX
     
-    qmlApi.doAPIRequests(screenName + "_fetchAllowanceAndPairs_" + randomID)
+    qmlApi.doAPIRequests(screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID)
   }
 
   function updateDisplay() {
@@ -483,6 +489,7 @@ AVMEPanel {
       exchangePanelApprovalColumn.visible = true
       exchangePanelDetailsColumn.visible = false
       exchangePanelLoadingPng.visible = false
+      exchangePanelUnavailablePair.visible = false
       reservesTimer.start()
       allowanceTimer.start()
     } else {
@@ -490,6 +497,7 @@ AVMEPanel {
       exchangePanelApprovalColumn.visible = false
       exchangePanelDetailsColumn.visible = true
       exchangePanelLoadingPng.visible = false
+      exchangePanelUnavailablePair.visible = false
       allowanceTimer.stop()
     }
   }
@@ -594,8 +602,8 @@ AVMEPanel {
         amountOut = calculateExchangeAmount(amountIn, 
           exchangeInfo["reserves"][0]["reservesOut"],  
           exchangeInfo["reserves"][0]["reservesIn"], 
-          exchangeInfo["reserves"][0]["decimalsIn"], 
-          exchangeInfo["reserves"][0]["decimalsOut"])
+          exchangeInfo["reserves"][0]["decimalsOut"], 
+          exchangeInfo["reserves"][0]["decimalsIn"])
       }
     } else {
       if (isLeft) {
@@ -1001,6 +1009,36 @@ function swapTx(amountIn, amountOut) {
           fundsPopup.open();
         }
       }
+    }
+  }
+
+  // ======================================================================
+  // PAIR UNAVAILABLE
+  // ======================================================================
+
+  Column {
+    id: exchangePanelUnavailablePair
+    anchors {
+      top: exchangePanelHeaderColumn.bottom
+      bottom: parent.bottom
+      left: parent.left
+      right: parent.right
+      topMargin: 20
+      bottomMargin: 20
+      leftMargin: 40
+      rightMargin: 40
+    }
+    spacing: 20
+
+    Text {
+      id: exchangePanelUnavailablePairText
+      width: parent.width
+      anchors.horizontalCenter: parent.horizontalCenter
+      horizontalAlignment: Text.AlignHCenter
+      elide: Text.ElideRight
+      color: "#FFFFFF"
+      font.pixelSize: 18.0
+      text: "The desired pair is unavailable<br>Please select other"
     }
   }
 

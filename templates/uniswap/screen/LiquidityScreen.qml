@@ -7,6 +7,7 @@ import QtQuick.Controls 2.2
 
 import "qrc:/qml/components"
 import "qrc:/qml/popups"
+import "../components"
 
 
 Item {
@@ -17,18 +18,18 @@ Item {
   Row {
     anchors.centerIn: parent
     spacing: 50
-    AVMEPanel {
+    AddLiquidityPanel {
       id: addLiquidityPanel
       title: "Add Liquidity"
       height: liquidityScreenItem.height * 0.8
-      width: liquidityScreenItem.width * 0.4
+      width: liquidityScreenItem.width * 0.45
     }
 
-    AVMEPanel {
+    RemoveLiquidityPanel {
       id: removeLiquidityPanel
       title: "Remove Liquidity"
       height: liquidityScreenItem.height * 0.8
-      width: liquidityScreenItem.width * 0.4
+      width: liquidityScreenItem.width * 0.45
     }
   }
 }
