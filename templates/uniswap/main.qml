@@ -5,8 +5,8 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 
-import "screen"
-import "components"
+import "screen" as Screen
+import "components" as Components
 import "qrc:/qml/components"
 import "qrc:/qml/popups"
 
@@ -43,7 +43,7 @@ Item {
     imageSource: "images/exchangeLogo.png"
   }
 
-  SideMenu {
+  Components.SideMenu {
     id: sideMenu
     anchors.right: parent.right
     exchangeBtn.onClicked: {
@@ -109,11 +109,11 @@ Item {
     anchors.left: parent.left
     anchors.right: sideMenu.left
     anchors.bottom: parent.bottom
-    ExchangeScreen {
+    Screen.ExchangeScreen {
       id: screenExchange
     }
 
-    LiquidityScreen {
+    Screen.LiquidityScreen {
       id: screenLiquidity
     }
   }
