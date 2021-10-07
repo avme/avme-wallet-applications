@@ -22,11 +22,25 @@ Item {
   property string exchangeFee: "3" // 0.3% 
   property string screenName: "UniswapTemplate"
   property string exchangeName: "Pangolin"
-  property string exchangeLogo: "images/exchangeLogo.png"
+  property string exchangeLogo: "../images/exchangeLogo.png"
 
   Component.onCompleted: {
     exchangeScreen.visible = true
     liquidityScreen.visible = false
+  }
+
+  AVMEAsyncImage {
+    id: logoBg
+    width: 500
+    height: 500
+    z: 0
+    anchors {
+      left: parent.left
+      bottom: parent.bottom
+      margins: 50
+    }
+    imageOpacity: 0.15
+    imageSource: "images/exchangeLogo.png"
   }
 
   SideMenu {
@@ -63,6 +77,14 @@ Item {
     defaultToAVME: false
   }
 
+  AVMEPopupAssetSelect {
+    id: removeLiquidityLeftAssetPopup
+    defaultToAVME: false
+  }
+  AVMEPopupAssetSelect {
+    id: removeLiquidityRightAssetPopup
+    defaultToAVME: false
+  }
 
   AVMEPopupConfirmTx {
     id: confirmTransactionPopup
