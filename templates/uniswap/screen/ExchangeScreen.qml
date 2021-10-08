@@ -281,35 +281,35 @@ AVMEPanel {
   }
 
   Connections {
-    target: exchangeLeftAssetPopup 
-    function onAboutToHide() {
+    target: exchangeLeftAssetCombobox 
+    function onActivated() {
       // No need to reload in case of the same asset is selected
-      if (exchangeInfo["left"]["contract"] == exchangeLeftAssetPopup.chosenAssetAddress) {
+      if (exchangeInfo["left"]["contract"] == exchangeLeftAssetCombobox.chosenAsset.address) {
         return
       }
 
       // Do not allow to set a swap between the same assets
-      if (exchangeInfo["right"]["contract"] == exchangeLeftAssetPopup.chosenAssetAddress) {
+      if (exchangeInfo["right"]["contract"] == exchangeLeftAssetCombobox.chosenAsset.address) {
         return
       }
       
       // Edge case for WAVAX
-      if (exchangeLeftAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      if (exchangeLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         exchangeInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
       } else {
         exchangeInfo["left"]["allowance"] = "0";
       }
-      exchangeInfo["left"]["decimals"] = exchangeLeftAssetPopup.chosenAssetDecimals
-      exchangeInfo["left"]["contract"] = exchangeLeftAssetPopup.chosenAssetAddress
-      exchangeInfo["left"]["symbol"] = exchangeLeftAssetPopup.chosenAssetSymbol
+      exchangeInfo["left"]["decimals"] = exchangeLeftAssetCombobox.chosenAsset.decimals
+      exchangeInfo["left"]["contract"] = exchangeLeftAssetCombobox.chosenAsset.address
+      exchangeInfo["left"]["symbol"] = exchangeLeftAssetCombobox.chosenAsset.symbol
 
       var img = ""
-      if (exchangeLeftAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      if (exchangeLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         img = "qrc:/img/avax_logo.png"
-      } else if (exchangeLeftAssetPopup.chosenAssetAddress == "0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed") {
+      } else if (exchangeLeftAssetCombobox.chosenAsset.address == "0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed") {
         img = "qrc:/img/avme_logo.png"
       } else {
-        var tmpImg = qmlApi.getARC20TokenImage(exchangeLeftAssetPopup.chosenAssetAddress)
+        var tmpImg = qmlApi.getARC20TokenImage(exchangeLeftAssetCombobox.chosenAsset.address)
         img = (tmpImg != "") ? "file:" + tmpImg : "qrc:/img/unknown_token.png"
       }
 
@@ -323,35 +323,35 @@ AVMEPanel {
   }
 
   Connections {
-    target: exchangeRightAssetPopup 
-    function onAboutToHide() {
+    target: exchangeRightAssetCombobox 
+    function onActivated() {
       // No need to reload in case of the same asset is selected
-      if (exchangeInfo["right"]["contract"] == exchangeRightAssetPopup.chosenAssetAddress) {
+      if (exchangeInfo["right"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
         return
       }
 
       // Do not allow to set a swap between the same assets
-      if (exchangeInfo["left"]["contract"] == exchangeRightAssetPopup.chosenAssetAddress) {
+      if (exchangeInfo["left"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
         return
       }
       
       // Edge case for WAVAX
-      if (exchangeRightAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      if (exchangeRightAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         exchangeInfo["right"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
       } else {
         exchangeInfo["right"]["allowance"] = "0";
       }
-      exchangeInfo["right"]["decimals"] = exchangeRightAssetPopup.chosenAssetDecimals
-      exchangeInfo["right"]["contract"] = exchangeRightAssetPopup.chosenAssetAddress
-      exchangeInfo["right"]["symbol"] = exchangeRightAssetPopup.chosenAssetSymbol
+      exchangeInfo["right"]["decimals"] = exchangeRightAssetCombobox.chosenAsset.decimals
+      exchangeInfo["right"]["contract"] = exchangeRightAssetCombobox.chosenAsset.address
+      exchangeInfo["right"]["symbol"] = exchangeRightAssetCombobox.chosenAsset.symbol
 
       var img = ""
-      if (exchangeRightAssetPopup.chosenAssetAddress == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+      if (exchangeRightAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         img = "qrc:/img/avax_logo.png"
-      } else if (exchangeRightAssetPopup.chosenAssetAddress == "0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed") {
+      } else if (exchangeRightAssetCombobox.chosenAsset.address == "0x1ECd47FF4d9598f89721A2866BFEb99505a413Ed") {
         img = "qrc:/img/avme_logo.png"
       } else {
-        var tmpImg = qmlApi.getARC20TokenImage(exchangeRightAssetPopup.chosenAssetAddress)
+        var tmpImg = qmlApi.getARC20TokenImage(exchangeRightAssetCombobox.chosenAsset.address)
         img = (tmpImg != "") ? "file:" + tmpImg : "qrc:/img/unknown_token.png"
       }
 
@@ -564,6 +564,13 @@ AVMEPanel {
       exchangeInfo["reserves"].push(tmpReserves1)
       exchangeInfo["reserves"].push(tmpReserves2)
     }
+
+    // Invert comboBox
+    var leftIndex = exchangeLeftAssetCombobox.currentIndex
+    var rightIndex = exchangeRightAssetCombobox.currentIndex
+
+    exchangeLeftAssetCombobox.currentIndex = rightIndex
+    exchangeRightAssetCombobox.currentIndex = leftIndex
 
     updateDisplay()
   }
@@ -831,32 +838,10 @@ function swapTx(amountIn, amountOut) {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.margins: 20
 
-      Rectangle {
-        id: leftLogoRectangle
-        height: 64
-        width: 64
-        anchors.verticalCenter: parent.verticalCenter
-        color: "transparent"
-        radius: 5
-        anchors.margins: 20
-
-        AVMEAsyncImage {
-          id: leftLogo
-          height: 48
-          width: 48
-          anchors.verticalCenter: parent.verticalCenter
-          anchors.horizontalCenter: parent.horizontalCenter
-          imageSource: leftImageSource
-        }
-        MouseArea { 
-          id: leftLogoMouseArea
-          anchors.fill: parent
-          hoverEnabled: true
-          enabled: (!loading)
-          onEntered: leftLogoRectangle.color = "#1d1827"
-          onExited: leftLogoRectangle.color = "transparent"
-          onClicked: { exchangeLeftAssetPopup.open() }
-        }
+      AVMEAssetCombobox {
+        id: exchangeLeftAssetCombobox
+        height: parent.height
+        width: exchangePanelHeaderColumn.width / 2.5
       }
 
       Rectangle {
@@ -886,31 +871,12 @@ function swapTx(amountIn, amountOut) {
           onClicked: { swapOrder() }
         }
       }
-      Rectangle {
-        id: rightLogoRectangle
-        height: 64
-        width: 64
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.margins: 20
-        color: "transparent"
-        radius: 5
-        AVMEAsyncImage {
-          id: rightLogo
-          height: 48
-          width: 48
-          anchors.verticalCenter: parent.verticalCenter
-          anchors.horizontalCenter: parent.horizontalCenter
-          imageSource: rightImageSource
-        }
-        MouseArea { 
-          id: rightLogoMouseArea
-          anchors.fill: parent
-          hoverEnabled: true
-          enabled: (!loading)
-          onEntered: rightLogoRectangle.color = "#1d1827"
-          onExited: rightLogoRectangle.color = "transparent"
-          onClicked: { exchangeRightAssetPopup.open() }
-        }
+
+      AVMEAssetCombobox {
+        id: exchangeRightAssetCombobox
+        height: parent.height
+        width: exchangePanelHeaderColumn.width / 2.5
+        defaultToAVME: true
       }
     }
     Text {

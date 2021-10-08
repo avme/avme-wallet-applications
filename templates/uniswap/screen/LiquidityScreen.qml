@@ -17,19 +17,19 @@ Item {
 
   Row {
     anchors.centerIn: parent
-    spacing: 50
+    spacing: 25
     Components.AddLiquidityPanel {
       id: addLiquidityPanel
       title: "Add Liquidity"
       height: liquidityScreenItem.height * 0.8
-      width: liquidityScreenItem.width * 0.45
+      width: liquidityScreenItem.width * 0.475
     }
 
     Components.RemoveLiquidityPanel {
       id: removeLiquidityPanel
       title: "Remove Liquidity"
       height: liquidityScreenItem.height * 0.8
-      width: liquidityScreenItem.width * 0.45
+      width: liquidityScreenItem.width * 0.475
     }
   }
 }

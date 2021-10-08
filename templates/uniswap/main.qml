@@ -59,33 +59,7 @@ Item {
 
   // Popups are *required* to be declared on the root window
   // due to centralization issues.
-  AVMEPopupAssetSelect {
-    id: exchangeLeftAssetPopup
-    defaultToAVME: false
-  }
-  AVMEPopupAssetSelect {
-    id: exchangeRightAssetPopup
-    defaultToAVME: false
-  }
-
-  AVMEPopupAssetSelect {
-    id: addLiquidityLeftAssetPopup
-    defaultToAVME: false
-  }
-  AVMEPopupAssetSelect {
-    id: addLiquidityRightAssetPopup
-    defaultToAVME: false
-  }
-
-  AVMEPopupAssetSelect {
-    id: removeLiquidityLeftAssetPopup
-    defaultToAVME: false
-  }
-  AVMEPopupAssetSelect {
-    id: removeLiquidityRightAssetPopup
-    defaultToAVME: false
-  }
-
+  
   AVMEPopupConfirmTx {
     id: confirmTransactionPopup
   }
@@ -113,7 +87,7 @@ Item {
       id: screenExchange
     }
 
-    Screen.LiquidityScreen {
+  Screen.LiquidityScreen {
       id: screenLiquidity
     }
   }
