@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "chainId": 41113,
+      "folder": "PangolinDEX",
+      "name": "Pangolin DEX",
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  ]
+}
