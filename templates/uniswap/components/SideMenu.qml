@@ -6,34 +6,23 @@ import QtQuick.Controls 2.2
 
 import "qrc:/qml/components"
 
+// Side menu with options.
 Rectangle {
-   id: sideMenuRectangle
-   property alias exchangeBtn: btnExchange
-   property alias liquidityBtn: btnLiquidity
-   property alias quitBtn: btnQuit
-   anchors.verticalCenter: parent.verticalCenter
-   height: sideMenuColumn.height * 1.5
-   width: parent.width * 0.1
-   color: "#1C2029"
+  id: menu
+  property alias exchangeBtn: btnExchange
+  property alias liquidityBtn: btnLiquidity
+  property alias quitBtn: btnQuit
+  anchors.verticalCenter: parent.verticalCenter
+  width: (parent.width * 0.1)
+  height: (menuCol.height * 1.25)
+  color: "#1C2029"
 
-   Column {
-      id: sideMenuColumn
-      anchors.centerIn: parent
-      spacing: 30
-      AVMEButton {
-         id: btnExchange
-         text: "Exchange"
-         width: parent.parent.width * 0.8
-      }
-      AVMEButton {
-         id: btnLiquidity
-         text: "Liquidity"
-         width: parent.parent.width * 0.8
-      }
-      AVMEButton {
-         id: btnQuit
-         text: "Quit"
-         width: parent.parent.width * 0.8
-      }
-   }
+  Column {
+    id: menuCol
+    anchors.centerIn: parent
+    spacing: 20
+    AVMEButton { id: btnExchange; text: "Exchange"; width: menu.width * 0.8 }
+    AVMEButton { id: btnLiquidity; text: "Liquidity"; width: menu.width * 0.8 }
+    AVMEButton { id: btnQuit; text: "Quit"; width: menu.width * 0.8 }
+  }
 }

@@ -1,20 +1,18 @@
 /* Copyright (c) 2020-2021 AVME Developers
    Distributed under the MIT/X11 software license, see the accompanying
    file LICENSE or http://www.opensource.org/licenses/mit-license.php. */
-   
 import QtQuick 2.15
 import QtQuick.Controls 2.2
 
 import "qrc:/qml/components"
 import "qrc:/qml/popups"
 
-
 AVMEPanel {
   id: exchangeScreenPanel
-  anchors.centerIn: parent
   title: "Exchange"
-  height: parent.height * 0.8
-  width: parent.width * 0.4
+  width: (parent.width * 0.4)
+  height: (parent.height * 0.8)
+  anchors.centerIn: parent
 
   /**
    *  Holds information about the assets, as follows:
@@ -35,7 +33,7 @@ AVMEPanel {
    *      "imageSource": "...",
    *      "approved"   : "..."
    *    },
-   *    
+   *
    *    "pairs" : [
    *      "0x...",
    *      "0x..."
@@ -61,11 +59,10 @@ AVMEPanel {
    *    ]
    *  }
    */
-  
-  // We need properties for information
-  // used inside objects, as when you open a new screen
-  // It cannot load objects inside the "exchangeInfo" property
 
+  // We need properties for information used inside objects,
+  // as when you open a new screen it cannot load objects inside the
+  // "exchangeInfo" property.
   property var exchangeInfo: ({})
   property string leftSymbol: ""
   property string leftImageSource: ""
@@ -91,16 +88,13 @@ AVMEPanel {
   property string historyInfo
 
   // Helper properties
-
   property string randomID
   property bool loading: true
 
-
-  // Timers for constantly update values
-
-  Timer { id: balanceTimer; interval: 10; repeat: true; onTriggered: (updateBalances()) }
-  Timer { id: reservesTimer; interval: 500; repeat: true; onTriggered: (fetchReserves()) }
-  Timer { id: allowanceTimer; interval: 100; repeat: true; onTriggered: (fetchAllowanceAndPairs(false)) }
+  // Timers for constantly updating values
+  Timer { id: balanceTimer; interval: 10; repeat: true; onTriggered: updateBalances() }
+  Timer { id: reservesTimer; interval: 500; repeat: true; onTriggered: fetchReserves() }
+  Timer { id: allowanceTimer; interval: 100; repeat: true; onTriggered: fetchAllowanceAndPairs(false) }
 
   // Connections to handle API answers
   Connections {
@@ -120,23 +114,23 @@ AVMEPanel {
             leftAllowance = qmlApi.parseHex(respArr[answerItem].result, ["uint"])
           }
           if (respArr[answerItem]["id"] == 2) {
-            // allowance for rightAsset
+            // Allowance for rightAsset
             rightAllowance = qmlApi.parseHex(respArr[answerItem].result, ["uint"])
           }
           if (respArr[answerItem]["id"] == 3) {
-            // pair left/right
+            // Pair left/right
             pairAddress = qmlApi.parseHex(respArr[answerItem].result, ["address"])
           }
           if (respArr[answerItem]["id"] == 4) {
-            // pair left/WAVAX
+            // Pair left/WAVAX
             pairTokenInAddress = qmlApi.parseHex(respArr[answerItem].result, ["address"])
           }
           if (respArr[answerItem]["id"] == 5) {
-            // pair right/WAVAX
+            // Pair right/WAVAX
             pairTokenOutAddress = qmlApi.parseHex(respArr[answerItem].result, ["address"])
           }
         }
-        
+
         exchangeInfo["left"]["allowance"] = leftAllowance
         exchangeInfo["right"]["allowance"] = rightAllowance
         if (!(exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")) {
@@ -164,26 +158,28 @@ AVMEPanel {
         }
 
         // Add edge case situation where the token is not available on the DEX
-        if (pairAddress == 0x0000000000000000000000000000000000000000 &&
-            pairTokenInAddress == 0x0000000000000000000000000000000000000000 &&
-            pairTokenOutAddress == 0x0000000000000000000000000000000000000000) {
-            exchangePanelApprovalColumn.visible = false
-            exchangePanelDetailsColumn.visible = false
-            exchangePanelLoadingPng.visible = false
-            exchangePanelUnavailablePair.visible = true
-            loading = false
-            return
+        if (
+          pairAddress == 0x0000000000000000000000000000000000000000 &&
+          pairTokenInAddress == 0x0000000000000000000000000000000000000000 &&
+          pairTokenOutAddress == 0x0000000000000000000000000000000000000000
+        ) {
+          exchangePanelApprovalColumn.visible = false
+          exchangePanelDetailsColumn.visible = false
+          exchangePanelLoadingPng.visible = false
+          exchangePanelUnavailablePair.visible = true
+          loading = false
+          return
         }
-        
 
-        // Check allowance to see if we can proceed collecting further information
-        // Only check if it is a token and not WAVAX, as WAVAX does NOT require allowance
+        // Check allowance to see if we can proceed collecting further information.
+        // Only check if it is a token and not WAVAX, as WAVAX does NOT require allowance.
         if (!exchangeInfo["left"]["approved"]) {
           // Required allowance on the input asset!
           reservesTimer.start()
         } else {
           allowanceTimer.stop()
         }
+
         // Add the pair contracts and proper routing for the contract call
         // Only allow to push new pairs if the array is empty.
         if (exchangeInfo["pairs"].length == 0) {
@@ -281,7 +277,7 @@ AVMEPanel {
   }
 
   Connections {
-    target: exchangeLeftAssetCombobox 
+    target: exchangeLeftAssetCombobox
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (exchangeInfo["left"]["contract"] == exchangeLeftAssetCombobox.chosenAsset.address) {
@@ -292,10 +288,11 @@ AVMEPanel {
       if (exchangeInfo["right"]["contract"] == exchangeLeftAssetCombobox.chosenAsset.address) {
         return
       }
-      
+
       // Edge case for WAVAX
       if (exchangeLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
-        exchangeInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
+        // WAVAX does not require allowance
+        exchangeInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE();
       } else {
         exchangeInfo["left"]["allowance"] = "0";
       }
@@ -323,7 +320,7 @@ AVMEPanel {
   }
 
   Connections {
-    target: exchangeRightAssetCombobox 
+    target: exchangeRightAssetCombobox
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (exchangeInfo["right"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
@@ -334,10 +331,11 @@ AVMEPanel {
       if (exchangeInfo["left"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
         return
       }
-      
+
       // Edge case for WAVAX
       if (exchangeRightAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
-        exchangeInfo["right"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
+        // WAVAX does not require allowance
+        exchangeInfo["right"]["allowance"] = qmlApi.MAX_U256_VALUE();
       } else {
         exchangeInfo["right"]["allowance"] = "0";
       }
@@ -382,9 +380,8 @@ AVMEPanel {
     exchangeInfo["right"]["symbol"] = "AVME";
     exchangeInfo["right"]["imageSource"] = "qrc:/img/avme_logo.png";
     // Information displayed to the user needs to be kept on their own variable
-    // As a string. For that reason we have created a updateDisplay() function
-    // Which will provide these variables with the new information from
-    // the exchangeInfo var
+    // as a string. For that reason there's an updateDisplay() function which
+    // will provide these variables with the new information from "exchangeInfo"
     updateDisplay()
     fetchAllowanceAndPairs(true)
     balanceTimer.start()
@@ -411,15 +408,14 @@ AVMEPanel {
       randomID = qmlApi.getRandomID()
       exchangePanelApprovalColumn.visible = false
       exchangePanelDetailsColumn.visible = false
-      exchangePanelUnavailablePair.visible = false 
+      exchangePanelUnavailablePair.visible = false
       exchangePanelLoadingPng.visible = true
       loading = true
     }
 
     qmlApi.clearAPIRequests(screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID)
-    // Get allowance for inToken and reserves for all
-    // Including reserves for both in/out tokens against WAVAX
-
+    // Get allowance for inToken and reserves for all, including reserves for
+    // both in/out tokens against WAVAX.
     // Allowance for leftAsset
     qmlApi.buildGetAllowanceReq(
       exchangeInfo["left"]["contract"],
@@ -460,7 +456,6 @@ AVMEPanel {
     // id 3: Pair contract for left/right
     // id 4: Pair contract for left/WAVAX
     // id 5: Pair contract for right/WAVAX
-    
     qmlApi.doAPIRequests(screenName + "_" + title + "_" +  "_fetchAllowanceAndPairs_" + randomID)
   }
 
@@ -481,10 +476,10 @@ AVMEPanel {
     updateBalances()
 
     // Check allowance to see if we should ask the user to allow it.
-    // Only check if it is a token and not WAVAX, as WAVAX does NOT require allowance
+    // Only check if it is a token and not WAVAX, as WAVAX does NOT require allowance.
     if (!exchangeInfo["left"]["approved"]) {
       // Reset the randomID, if there is a reserves request pending on the C++ side
-      // It won't set the screens to visible again
+      // it won't set the screens to visible again.
       // Required allowance on the input asset!
       exchangePanelApprovalColumn.visible = true
       exchangePanelDetailsColumn.visible = false
@@ -516,7 +511,7 @@ AVMEPanel {
     var tmpRight = ({})
     tmpLeft = exchangeInfo["right"]
     tmpRight = exchangeInfo["left"]
-    
+
     exchangeInfo["left"] = ({})
     exchangeInfo["right"] = ({})
     exchangeInfo["left"] = tmpLeft
@@ -536,7 +531,7 @@ AVMEPanel {
       tmpReserves["decimalsOut"] = exchangeInfo["reserves"][0]["decimalsIn"]
       exchangeInfo["reserves"] = ([])
       exchangeInfo["reserves"].push(tmpReserves)
- 
+
     } else {
       var tmpPairs = ([])
       tmpPairs.push(exchangeInfo["pairs"][1])
@@ -579,7 +574,7 @@ AVMEPanel {
     var amountInWei = qmlApi.fixedPointToWei(amountIn, inDecimals)
 
     var amountInWithFee = qmlApi.floor(qmlApi.mul(amountInWei, qmlApi.sub(1000, exchangeFee)))
-    if (qmlApi.floor(qmlApi.div(amountInWithFee, qmlApi.sub(1000, exchangeFee))) != amountInWei) { return } // Mul overflow 
+    if (qmlApi.floor(qmlApi.div(amountInWithFee, qmlApi.sub(1000, exchangeFee))) != amountInWei) { return } // Mul overflow
 
     var numerator = qmlApi.floor(qmlApi.mul(amountInWithFee, outReserves))
     if (qmlApi.floor(qmlApi.div(numerator, outReserves)) != amountInWithFee) { return } // Mul overflow
@@ -599,44 +594,44 @@ AVMEPanel {
     var amountOut = ""
     if (exchangeInfo["reserves"].length == 1) {
       if (isLeft) {
-        amountOut = calculateExchangeAmount(amountIn, 
-          exchangeInfo["reserves"][0]["reservesIn"], 
-          exchangeInfo["reserves"][0]["reservesOut"], 
-          exchangeInfo["reserves"][0]["decimalsIn"], 
+        amountOut = calculateExchangeAmount(amountIn,
+          exchangeInfo["reserves"][0]["reservesIn"],
+          exchangeInfo["reserves"][0]["reservesOut"],
+          exchangeInfo["reserves"][0]["decimalsIn"],
           exchangeInfo["reserves"][0]["decimalsOut"]
         )
       } else {
-        amountOut = calculateExchangeAmount(amountIn, 
-          exchangeInfo["reserves"][0]["reservesOut"],  
-          exchangeInfo["reserves"][0]["reservesIn"], 
-          exchangeInfo["reserves"][0]["decimalsOut"], 
+        amountOut = calculateExchangeAmount(amountIn,
+          exchangeInfo["reserves"][0]["reservesOut"],
+          exchangeInfo["reserves"][0]["reservesIn"],
+          exchangeInfo["reserves"][0]["decimalsOut"],
           exchangeInfo["reserves"][0]["decimalsIn"])
       }
     } else {
       if (isLeft) {
-        amountOut = calculateExchangeAmount(amountIn, 
-          exchangeInfo["reserves"][0]["reservesIn"], 
+        amountOut = calculateExchangeAmount(amountIn,
+          exchangeInfo["reserves"][0]["reservesIn"],
           exchangeInfo["reserves"][0]["reservesOut"],
-          exchangeInfo["reserves"][0]["decimalsIn"], 
+          exchangeInfo["reserves"][0]["decimalsIn"],
           exchangeInfo["reserves"][0]["decimalsOut"]
         )
-        amountOut = calculateExchangeAmount(amountOut, 
-          exchangeInfo["reserves"][1]["reservesIn"], 
-          exchangeInfo["reserves"][1]["reservesOut"], 
-          exchangeInfo["reserves"][1]["decimalsIn"], 
+        amountOut = calculateExchangeAmount(amountOut,
+          exchangeInfo["reserves"][1]["reservesIn"],
+          exchangeInfo["reserves"][1]["reservesOut"],
+          exchangeInfo["reserves"][1]["decimalsIn"],
           exchangeInfo["reserves"][1]["decimalsOut"]
         )
       } else {
-        amountOut = calculateExchangeAmount(amountIn, 
-          exchangeInfo["reserves"][1]["reservesOut"], 
-          exchangeInfo["reserves"][1]["reservesIn"], 
-          exchangeInfo["reserves"][1]["decimalsIn"], 
+        amountOut = calculateExchangeAmount(amountIn,
+          exchangeInfo["reserves"][1]["reservesOut"],
+          exchangeInfo["reserves"][1]["reservesIn"],
+          exchangeInfo["reserves"][1]["decimalsIn"],
           exchangeInfo["reserves"][1]["decimalsOut"]
         )
-        amountOut = calculateExchangeAmount(amountOut, 
-          exchangeInfo["reserves"][0]["reservesOut"], 
-          exchangeInfo["reserves"][0]["reservesIn"], 
-          exchangeInfo["reserves"][0]["decimalsIn"], 
+        amountOut = calculateExchangeAmount(amountOut,
+          exchangeInfo["reserves"][0]["reservesOut"],
+          exchangeInfo["reserves"][0]["reservesIn"],
+          exchangeInfo["reserves"][0]["decimalsIn"],
           exchangeInfo["reserves"][0]["decimalsOut"]
         )
       }
@@ -646,7 +641,6 @@ AVMEPanel {
 
   function calculateExchangePriceImpact(reservesIn, amountIn, decimalsIn) {
     var amountInWei = qmlApi.fixedPointToWei(amountIn, decimalsIn)
-
     var priceImpactFloat = qmlApi.mul(
       100,qmlApi.sub(
         1, qmlApi.div(
@@ -656,7 +650,6 @@ AVMEPanel {
         )
       )
     )
-
     var priceImpact = qmlApi.div(
       qmlApi.floor(
         qmlApi.mul(priceImpactFloat, 100)
@@ -668,7 +661,7 @@ AVMEPanel {
   function calculatePriceImpactText(amountIn) {
     return calculateExchangePriceImpact(exchangeInfo["reserves"][0]["reservesIn"], amountIn, exchangeInfo["reserves"][0]["decimalsIn"])
   }
-  
+
   // ======================================================================
   // TRANSACTION RELATED FUNCTIONS
   // ======================================================================
@@ -677,8 +670,8 @@ AVMEPanel {
     to = exchangeInfo["left"]["contract"]
     coinValue = 0
     gas = 70000
-    info = "You will Approve <b>" + exchangeInfo["left"]["symbol"] + "<\b> on " + exchangeName + " Router Contract"
-    historyInfo = "Approve <b>" + exchangeInfo["left"]["symbol"] + "<\b< on " + exchangeName
+    info = "You will Approve <b>" + exchangeInfo["left"]["symbol"] + "</b> on " + exchangeName + " Router Contract"
+    historyInfo = "Approve <b>" + exchangeInfo["left"]["symbol"] + "</b> on " + exchangeName
 
     // approve(address,uint256)
     var ethCallJson = ({})
@@ -694,13 +687,13 @@ AVMEPanel {
     txData = ABI
   }
 
-function swapTx(amountIn, amountOut) {
+  function swapTx(amountIn, amountOut) {
     to = router
     gas = 500000
-    info = "You will Swap <b>" + amountIn + " " + exchangeInfo["left"]["symbol"] + "<\b> to <b>" +
-    amountOut + " " + exchangeInfo["right"]["symbol"]   + "<\b> on Pangolin"
+    info = "You will Swap <b>" + amountIn + " " + exchangeInfo["left"]["symbol"] + "</b> to <b>" +
+    amountOut + " " + exchangeInfo["right"]["symbol"]   + "</b> on Pangolin"
     historyInfo = "Swap <b>" + exchangeInfo["left"]["symbol"] +
-    "<\b> to <b>" + exchangeInfo["right"]["symbol"] + "<\b>"
+    "</b> to <b>" + exchangeInfo["right"]["symbol"] + "</b>"
     if (exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       coinValue = String(amountIn)
       var ethCallJson = ({})
@@ -754,8 +747,8 @@ function swapTx(amountIn, amountOut) {
       txData = ABI
       return;
     }
-    if (exchangeInfo["left"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" && 
-        exchangeInfo["right"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
+    if (exchangeInfo["left"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" &&
+    exchangeInfo["right"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       coinValue = 0
       var ethCallJson = ({})
       var routing = ([])
@@ -790,28 +783,26 @@ function swapTx(amountIn, amountOut) {
     if (+transactionFee > +WeiWAVAXBalance) {
       return false
     }
-
     // Edge case for WAVAX
     if (exchangeInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       var totalCost = qmlApi.weiToFixedPoint(qmlApi.sum(transactionFee, qmlApi.fixedPointToWei(amountIn,18)),18)
       if (+totalCost > +accountHeader.coinRawBalance) {
         return false
       }
-    } else { 
+    } else {
       if (+amountIn > +accountHeader.tokenList[exchangeInfo["left"]["contract"]]["rawBalance"]) {
         return false
       }
     }
     return true
   }
-  
 
   // ======================================================================
   // HEADER
   // ======================================================================
 
   Column {
-    id: exchangePanelHeaderColumn 
+    id: exchangePanelHeaderColumn
     height: (parent.height * 0.5) - anchors.topMargin
     anchors {
       top: parent.top
@@ -822,6 +813,7 @@ function swapTx(amountIn, amountOut) {
       rightMargin: 40
     }
     spacing: 20
+
     Text {
       id: exchangeHeaderText
       anchors.horizontalCenter: parent.horizontalCenter
@@ -851,6 +843,7 @@ function swapTx(amountIn, amountOut) {
         anchors.verticalCenter: parent.verticalCenter
         color: "transparent"
         radius: 5
+
         Image {
           id: swapOrderImage
           height: 48
@@ -860,14 +853,13 @@ function swapTx(amountIn, amountOut) {
           fillMode: Image.PreserveAspectFit
           source: "qrc:/img/icons/arrow.png"
         }
-
         MouseArea {
           id: swapOrderMouseArea
           anchors.fill: parent
           hoverEnabled: true
           enabled: (!loading)
           onEntered: swapOrderRectangle.color = "#1d1827"
-          onExited: swapOrderRectangle.color = "transparent" 
+          onExited: swapOrderRectangle.color = "transparent"
           onClicked: { swapOrder() }
         }
       }
@@ -1013,7 +1005,7 @@ function swapTx(amountIn, amountOut) {
   // ======================================================================
 
   Column {
-    id: exchangePanelDetailsColumn 
+    id: exchangePanelDetailsColumn
     anchors {
       top: exchangePanelHeaderColumn.bottom
       bottom: parent.bottom
@@ -1044,7 +1036,7 @@ function swapTx(amountIn, amountOut) {
           leftMargin: 10
         }
         text: "Max"
-        onClicked: { 
+        onClicked: {
           // AVAX Edge Case
           if (leftContract == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
             var totalFees = qmlApi.floor(qmlApi.mul(500000, (+gasPrice * 1000000000)))
@@ -1124,7 +1116,7 @@ function swapTx(amountIn, amountOut) {
         background: Rectangle { color: "#1C2029" }
       }
     }
-    AVMEButton { 
+    AVMEButton {
       id: btnSwap
       width: parent.width
       anchors.horizontalCenter: parent.horizontalCenter
@@ -1157,8 +1149,8 @@ function swapTx(amountIn, amountOut) {
     width: 48
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.topMargin: 32
-    anchors.rightMargin: 32
+    anchors.topMargin: 16
+    anchors.rightMargin: 16
     color: "transparent"
     radius: 5
     Image {

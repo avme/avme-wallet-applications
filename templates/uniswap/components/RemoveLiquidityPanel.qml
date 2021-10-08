@@ -1,13 +1,11 @@
 /* Copyright (c) 2020-2021 AVME Developers
    Distributed under the MIT/X11 software license, see the accompanying
    file LICENSE or http://www.opensource.org/licenses/mit-license.php. */
-   
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 
 import "qrc:/qml/components"
 import "qrc:/qml/popups"
-
 
 AVMEPanel {
   id: addLiquidityPanel
@@ -31,7 +29,7 @@ AVMEPanel {
    *      "imageSource": "...",
    *      "approved"   : "..."
    *    },
-   *    
+   *
    *    "pair" : "0x...",
    *    "pairBalance" : "...",
    *    "pairAllowance": "..."
@@ -49,7 +47,7 @@ AVMEPanel {
    *      }
    *  }
    */
-  
+
   // We need properties for information
   // used inside objects, as when you open a new screen
   // It cannot load objects inside the "removeLiquidityInfo" property
@@ -87,7 +85,7 @@ AVMEPanel {
 
   property string randomID
   property bool loading: true
-  
+
   Timer { id: requestsTimer; interval: 5000; repeat: true; onTriggered: (fetchAllowanceBalanceReservesAndSupply()) }
 
   Connections {
@@ -151,18 +149,18 @@ AVMEPanel {
         removeLiquidityInfo["reserves"] = reserves
 
         var userShares = calculatePoolShares(
-          reserves["reservesIn"], reserves["reservesOut"], removeLiquidityInfo["pairBalance"], removeLiquidityInfo["pairSupply"] 
+          reserves["reservesIn"], reserves["reservesOut"], removeLiquidityInfo["pairBalance"], removeLiquidityInfo["pairSupply"]
         )
         removeLiquidityInfo["userLeftReserves"] = userShares.left
         removeLiquidityInfo["userRightReserves"] = userShares.right
         removeLiquidityInfo["userLPSharePercentage"] = userShares.liquidity
         loading = false
-      } 
+      }
     }
   }
 
   Connections {
-    target: removeLiquidityLeftAssetCombobox 
+    target: removeLiquidityLeftAssetCombobox
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (removeLiquidityInfo["left"]["contract"] == removeLiquidityLeftAssetCombobox.chosenAsset.address) {
@@ -173,7 +171,7 @@ AVMEPanel {
       if (removeLiquidityInfo["right"]["contract"] == removeLiquidityLeftAssetCombobox.chosenAsset.address) {
         return
       }
-      
+
       // Edge case for WAVAX
       if (removeLiquidityLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         removeLiquidityInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
@@ -202,7 +200,7 @@ AVMEPanel {
   }
 
   Connections {
-    target: removeLiquidityRightAssetCombobox 
+    target: removeLiquidityRightAssetCombobox
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (removeLiquidityInfo["right"]["contract"] == removeLiquidityRightAssetCombobox.chosenAsset.address) {
@@ -213,7 +211,7 @@ AVMEPanel {
       if (removeLiquidityInfo["left"]["contract"] == removeLiquidityRightAssetCombobox.chosenAsset.address) {
         return
       }
-      
+
       // Edge case for WAVAX
       if (removeLiquidityRightAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         removeLiquidityInfo["right"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
@@ -355,7 +353,7 @@ AVMEPanel {
   function calculateRemoveLiquidityAmount(reservesIn, reservesOut, percentage, _pairBalance) {
     var ret = ({})
     _pairBalance = qmlApi.fixedPointToWei(_pairBalance, 18)
-    
+
     var pc = qmlApi.div(percentage,100)
 
     var left = qmlApi.floor(qmlApi.mul(reservesIn, pc))
@@ -375,9 +373,9 @@ AVMEPanel {
     gas = 70000
     var ethCallJson = ({})
     info = "You will approve <b>"
-    + removeLiquidityInfo["left"]["symbol"] + "/" + removeLiquidityInfo["right"]["symbol"] 
+    + removeLiquidityInfo["left"]["symbol"] + "/" + removeLiquidityInfo["right"]["symbol"]
     + "</b> LP in + " + exchangeName + " router contract"
-    historyInfo = "Approve <\b>" + removeLiquidityInfo["left"]["symbol"]  + "/" + removeLiquidityInfo["right"]["symbol"]  + " LP <\b>in " + exchangeName
+    historyInfo = "Approve <b>" + removeLiquidityInfo["left"]["symbol"] + "/" + removeLiquidityInfo["right"]["symbol"]  + " LP</b> in " + exchangeName
     ethCallJson["function"] = "approve(address,uint256)"
     ethCallJson["args"] = []
     ethCallJson["args"].push(router)
@@ -389,7 +387,7 @@ AVMEPanel {
     var ABI = qmlApi.buildCustomABI(ethCallString)
     txData = ABI
   }
-  
+
   function removeLiquidityTx() {
     to = router
     coinValue = 0
@@ -400,7 +398,7 @@ AVMEPanel {
     + " and "
     + qmlApi.weiToFixedPoint(removeAssetRightEstimate, removeLiquidityInfo["right"]["decimals"]) + " " + removeLiquidityInfo["right"]["symbol"]
     + "<br></b> LP in + " + exchangeName + " router contract (estimated)"
-    historyInfo = "Remove <b>" + removeLiquidityInfo["left"]["symbol"]  + "<\b> and <b> " + removeLiquidityInfo["right"]["symbol"] + "<\b> from " + exchangeName  + " Liquidity"
+    historyInfo = "Remove <b>" + removeLiquidityInfo["left"]["symbol"]  + "</b> and <b> " + removeLiquidityInfo["right"]["symbol"] + "</b> from " + exchangeName  + " Liquidity"
     if (removeLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" ||
         removeLiquidityInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       ethCallJson["function"] = "removeLiquidityAVAX(address,uint256,uint256,uint256,address,uint256)"
@@ -487,7 +485,7 @@ AVMEPanel {
     }
     return true;
   }
-  
+
   // ======================================================================
   // HEADER
   // ======================================================================
@@ -520,7 +518,7 @@ AVMEPanel {
       id: removeLiquidityLogos
       height: 64
       anchors.horizontalCenter: parent.horizontalCenter
-      spacing: 5
+      spacing: 10
 
       AVMEAsyncImage {
         id: addExchangeLogo
@@ -530,12 +528,13 @@ AVMEPanel {
         imageSource: exchangeLogo
       }
 
-      Text {
-        id: removeLiquidityOrder
+      Image {
+        id: arrowImage
+        height: 48
+        width: 48
         anchors.verticalCenter: parent.verticalCenter
-        color: "#FFFFFF"
-        font.pixelSize: 48.0
-        text: " -> "
+        fillMode: Image.PreserveAspectFit
+        source: "qrc:/img/icons/arrow.png"
       }
 
       AVMEAssetCombobox {
@@ -546,7 +545,7 @@ AVMEPanel {
       }
       AVMEAssetCombobox {
         id: removeLiquidityRightAssetCombobox
-        defaultToAVME: false
+        defaultToAVME: true
         height: 64
         width: removeLiquidityPanelHeaderColumn.width / 3
       }
@@ -628,7 +627,7 @@ AVMEPanel {
       enabled: true
       anchors.horizontalCenter: parent.horizontalCenter
       text: (enabled) ? "Approve" : "Not enough funds"
-      onClicked: { 
+      onClicked: {
         approveTx()
         if (checkTransactionFunds()) {
           confirmTransactionPopup.setData(
@@ -720,7 +719,7 @@ AVMEPanel {
           radius: 5
         }
       }
-      onMoved: { 
+      onMoved: {
         var estimates = calculateRemoveLiquidityAmount(
           removeLiquidityInfo["userLeftReserves"], removeLiquidityInfo["userRightReserves"], value, removeLiquidityInfo["pairBalance"]
         )
@@ -802,7 +801,7 @@ AVMEPanel {
       anchors.horizontalCenter: parent.horizontalCenter
       enabled: ((liquidityLPSlider.value > 0) && +removeLPEstimate != 0)
       text: "Remove from the pool"
-      onClicked: { 
+      onClicked: {
         removeLiquidityTx()
         if (checkTransactionFunds()) {
           confirmTransactionPopup.setData(
@@ -828,8 +827,8 @@ AVMEPanel {
     width: 48
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.topMargin: 32
-    anchors.rightMargin: 32
+    anchors.topMargin: 16
+    anchors.rightMargin: 16
     color: "transparent"
     radius: 5
     Image {

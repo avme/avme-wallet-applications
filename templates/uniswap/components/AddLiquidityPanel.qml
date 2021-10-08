@@ -1,13 +1,11 @@
 /* Copyright (c) 2020-2021 AVME Developers
    Distributed under the MIT/X11 software license, see the accompanying
    file LICENSE or http://www.opensource.org/licenses/mit-license.php. */
-   
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 
 import "qrc:/qml/components"
 import "qrc:/qml/popups"
-
 
 AVMEPanel {
   id: addLiquidityPanel
@@ -31,7 +29,7 @@ AVMEPanel {
    *      "imageSource": "...",
    *      "approved"   : "..."
    *    },
-   *    
+   *
    *    "pair" : "0x..."
    *
    *    "reserves":
@@ -43,7 +41,7 @@ AVMEPanel {
    *      }
    *  }
    */
-  
+
   // We need properties for information
   // used inside objects, as when you open a new screen
   // It cannot load objects inside the "addLiquidityInfo" property
@@ -180,7 +178,7 @@ AVMEPanel {
   }
 
   Connections {
-    target: addLiquidityLeftAssetCombobox 
+    target: addLiquidityLeftAssetCombobox
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (addLiquidityInfo["left"]["contract"] == addLiquidityLeftAssetCombobox.chosenAsset.address) {
@@ -191,7 +189,7 @@ AVMEPanel {
       if (addLiquidityInfo["right"]["contract"] == addLiquidityLeftAssetCombobox.chosenAsset.address) {
         return
       }
-      
+
       // Edge case for WAVAX
       if (addLiquidityLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         addLiquidityInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
@@ -221,7 +219,7 @@ AVMEPanel {
   }
 
   Connections {
-    target: addLiquidityRightAssetCombobox 
+    target: addLiquidityRightAssetCombobox
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (addLiquidityInfo["right"]["contract"] == addLiquidityRightAssetCombobox.chosenAsset.address) {
@@ -232,7 +230,7 @@ AVMEPanel {
       if (addLiquidityInfo["left"]["contract"] == addLiquidityRightAssetCombobox.chosenAsset.address) {
         return
       }
-      
+
       // Edge case for WAVAX
       if (addLiquidityRightAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         addLiquidityInfo["right"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
@@ -383,17 +381,17 @@ AVMEPanel {
   function calculateExchangeAmountText(amountIn, isLeft) {
     var amountOut = ""
     if (isLeft) {
-      amountOut = calculateExchangeAmount(amountIn, 
-        addLiquidityInfo["reserves"]["reservesIn"], 
-        addLiquidityInfo["reserves"]["reservesOut"], 
-        addLiquidityInfo["reserves"]["decimalsIn"], 
+      amountOut = calculateExchangeAmount(amountIn,
+        addLiquidityInfo["reserves"]["reservesIn"],
+        addLiquidityInfo["reserves"]["reservesOut"],
+        addLiquidityInfo["reserves"]["decimalsIn"],
         addLiquidityInfo["reserves"]["decimalsOut"]
       )
     } else {
-      amountOut = calculateExchangeAmount(amountIn, 
-        addLiquidityInfo["reserves"]["reservesOut"],  
-        addLiquidityInfo["reserves"]["reservesIn"], 
-        addLiquidityInfo["reserves"]["decimalsOut"], 
+      amountOut = calculateExchangeAmount(amountIn,
+        addLiquidityInfo["reserves"]["reservesOut"],
+        addLiquidityInfo["reserves"]["reservesIn"],
+        addLiquidityInfo["reserves"]["decimalsOut"],
         addLiquidityInfo["reserves"]["decimalsIn"])
     }
     return amountOut;
@@ -403,7 +401,7 @@ AVMEPanel {
     // Get the max asset amounts, check who is lower and calculate accordingly
     var leftMax = ""
     var rightMax = ""
-    
+
     if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       var transactionFee = qmlApi.floor(qmlApi.mul(500000, (+gasPrice * 1000000000)))
       var WeiFreeWAVAXBalance = qmlApi.floor(qmlApi.sub(qmlApi.fixedPointToWei(accountHeader.coinRawBalance,18), transactionFee))
@@ -415,7 +413,7 @@ AVMEPanel {
     } else {
       leftMax = accountHeader.tokenList[addLiquidityInfo["left"]["contract"]]["rawBalance"]
     }
-    
+
     if (addLiquidityInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       var transactionFee = qmlApi.floor(qmlApi.mul(500000, (+gasPrice * 1000000000)))
       var WeiFreeWAVAXBalance = qmlApi.floor(qmlApi.sub(qmlApi.fixedPointToWei(accountHeader.coinRawBalance,18), transactionFee))
@@ -426,7 +424,7 @@ AVMEPanel {
       }
     } else {
       rightMax = accountHeader.tokenList[addLiquidityInfo["right"]["contract"]]["rawBalance"]
-    }    
+    }
     var assetLeftAmount, assetRightAmount
     assetLeftAmount = calculateExchangeAmountText(leftMax, true)
     assetRightAmount = calculateExchangeAmountText(rightMax, false)
@@ -477,7 +475,7 @@ AVMEPanel {
       if (+totalCost > +accountHeader.coinRawBalance) {
         return false
       }
-    } 
+    }
 
     if (addLiquidityInfo["left"]["contract"] != "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       if (+amountInLeft > +accountHeader.tokenList[addLiquidityInfo["left"]["contract"]]["rawBalance"]) {
@@ -498,6 +496,10 @@ AVMEPanel {
     coinValue = 0
     gas = 70000
     var ethCallJson = ({})
+    info = "You will approve <b>"
+    + addLiquidityInfo["left"]["symbol"] + "/" + addLiquidityInfo["right"]["symbol"]
+    + "</b> LP in + " + exchangeName + " router contract"
+    historyInfo = "Approve <b>" + removeLiquidityInfo["left"]["symbol"] + "/" + removeLiquidityInfo["right"]["symbol"]  + " LP</b> in " + exchangeName
     ethCallJson["function"] = "approve(address,uint256)"
     ethCallJson["args"] = []
     ethCallJson["args"].push(router)
@@ -513,9 +515,9 @@ AVMEPanel {
   function addLiquidityTx() {
     to = router
     gas = 500000
-    info = "You will Add <b>" + addLeftAssetInput.text + " " + leftSymbol + "<\b> <br>and<br> <b>"
-    info += addRightAssetInput.text + " " + rightSymbol + "<\b> on Pangolin Liquidity Pool"
-    historyInfo = "Add <b>" + leftSymbol + "<\b> and <b>" + rightSymbol + "<\b> to " + exchangeName + " Liquidity"
+    info = "You will Add <b>" + addLeftAssetInput.text + " " + leftSymbol + "</b> <br>and<br> <b>"
+    info += addRightAssetInput.text + " " + rightSymbol + "</b> on Pangolin Liquidity Pool"
+    historyInfo = "Add <b>" + leftSymbol + "</b> and <b>" + rightSymbol + "</b> to " + exchangeName + " Liquidity"
     if (addLiquidityInfo["left"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7" ||
         addLiquidityInfo["right"]["contract"] == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
       var ethCallJson = ({})
@@ -629,7 +631,7 @@ AVMEPanel {
       height: 64
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.margins: 20
-      spacing: 5
+      spacing: 10
 
       AVMEAssetCombobox {
         id: addLiquidityLeftAssetCombobox
@@ -645,12 +647,13 @@ AVMEPanel {
         defaultToAVME: true
       }
 
-      Text {
-        id: addLiquidityOrder
+      Image {
+        id: arrowImage
+        height: 48
+        width: 48
         anchors.verticalCenter: parent.verticalCenter
-        color: "#FFFFFF"
-        font.pixelSize: 48.0
-        text: " -> "
+        fillMode: Image.PreserveAspectFit
+        source: "qrc:/img/icons/arrow.png"
       }
 
       AVMEAsyncImage {
@@ -726,7 +729,7 @@ AVMEPanel {
       color: "#FFFFFF"
       font.pixelSize: 14.0
       text: "You need to approve your Account in order to add<br><b>"
-        + ((!leftAllowed) ? leftSymbol : "" ) 
+        + ((!leftAllowed) ? leftSymbol : "" )
         + ((!leftAllowed && !rightAllowed) ? " and " : "")
         + ((!rightAllowed) ? rightSymbol : "")
         + "</b> to the pool."
@@ -744,7 +747,7 @@ AVMEPanel {
       )
       anchors.horizontalCenter: parent.horizontalCenter
       text: (enabled) ? "Approve " + leftSymbol : "Not enough funds"
-      onClicked: { 
+      onClicked: {
         approveTx(addLiquidityInfo["left"]["contract"])
         if (calculateTransactionCost(70000, "0", "0")) {
           confirmTransactionPopup.setData(
@@ -772,7 +775,7 @@ AVMEPanel {
       )
       anchors.horizontalCenter: parent.horizontalCenter
       text: (enabled) ? "Approve " + rightSymbol : "Not enough funds"
-      onClicked: { 
+      onClicked: {
         approveTx(addLiquidityInfo["right"]["contract"])
         if (calculateTransactionCost(70000, "0", "0")) {
           confirmTransactionPopup.setData(
@@ -846,7 +849,7 @@ AVMEPanel {
       validator: RegExpValidator { regExp: qmlApi.createRegExp("[0-9]{1,99}(?:\\.[0-9]{1," + leftDecimals + "})?") }
       label: leftSymbol + " Amount"
       placeholder: "Fixed point amount (e.g. 0.5)"
-      onTextEdited: { 
+      onTextEdited: {
         addRightAssetInput.text = calculateExchangeAmountText(addLeftAssetInput.text, true)
       }
     }
@@ -857,7 +860,7 @@ AVMEPanel {
       validator: RegExpValidator { regExp: qmlApi.createRegExp("[0-9]{1,99}(?:\\.[0-9]{1," + leftDecimals + "})?") }
       label: rightSymbol + " Amount"
       placeholder: "Fixed point amount (e.g. 0.5)"
-      onTextEdited: { 
+      onTextEdited: {
         addLeftAssetInput.text = calculateExchangeAmountText(addRightAssetInput.text, false)
       }
     }
@@ -903,8 +906,8 @@ AVMEPanel {
     width: 48
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.topMargin: 32
-    anchors.rightMargin: 32
+    anchors.topMargin: 16
+    anchors.rightMargin: 16
     color: "transparent"
     radius: 5
     Image {
