@@ -12,6 +12,10 @@ Before submitting your DApp, check if all of the following apply:
     - `AVMEPanel`
     - `AVMEPopup`
     - `AVMEAsyncImage`
+    - `AVMECheckbox`
+    - `AVMESpinbox`
+    - `AVMECombobox`
+    - `AVMEAssetCombobox` (contains the user's assets - AVAX + tokens)
   - Components from [`qml/popups`](https://github.com/avme/avme-wallet/tree/main/src/qml/popups):
     - `AVMEPopupInfo`
     - `AVMEPopupYesNo`
