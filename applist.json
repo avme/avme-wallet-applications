@@ -7,6 +7,13 @@
       "major": 1,
       "minor": 0,
       "patch": 0
-    }
+    },
+    {
+      "chainId": 41113,
+      "folder": "TraderJoeDEX",
+      "name": "Trader Joe DEX",
+      "major": 1,
+      "minor": 0,
+      "patch": 0
   ]
 }
