@@ -16,6 +16,7 @@ Before submitting your DApp, check if all of the following apply:
     - `AVMESpinbox`
     - `AVMECombobox`
     - `AVMEAssetCombobox` (contains the user's assets - AVAX + tokens)
+    - `AVMEAccountHeader` (contains the user's currently selected address and detailed asset information)
   - Components from [`qml/popups`](https://github.com/avme/avme-wallet/tree/main/src/qml/popups):
     - `AVMEPopupInfo`
     - `AVMEPopupYesNo`
