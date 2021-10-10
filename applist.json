@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "chainId": 41113,
+      "chainId": 43114,
       "folder": "PangolinDEX",
       "name": "Pangolin DEX",
       "major": 1,
@@ -9,7 +9,7 @@
       "patch": 0
     },
     {
-      "chainId": 41113,
+      "chainId": 43114,
       "folder": "TraderJoeDEX",
       "name": "Trader Joe DEX",
       "major": 1,
