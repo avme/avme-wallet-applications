@@ -16,12 +16,13 @@ Before submitting your DApp, check if all of the following apply:
     - `AVMESpinbox`
     - `AVMECombobox`
     - `AVMEAssetCombobox` (contains the user's assets - AVAX + tokens)
-    - `AVMEAccountHeader` (contains the user's currently selected address and detailed asset information)
   - Components from [`qml/popups`](https://github.com/avme/avme-wallet/tree/main/src/qml/popups):
     - `AVMEPopupInfo`
     - `AVMEPopupYesNo`
     - `AVMEPopupAssetSelect`
     - `AVMEPopupConfirmTx` and `AVMEPopupTxProgress` (used together)
+  - Data from inside the `AVMEAccountHeader` component, such as:
+    - `accountHeader.currentAddress` (the user's currently selected address)
 4. Any and all external resources (e.g. images, helper code, etc.) used in your DApp are not malicious and/or harmful.
 5. Your DApp is not using any of the following JS functions:
   - eval()
