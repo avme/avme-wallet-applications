@@ -284,11 +284,6 @@ AVMEPanel {
         return
       }
 
-      // Do not allow to set a swap between the same assets
-      if (exchangeInfo["right"]["contract"] == exchangeLeftAssetCombobox.chosenAsset.address) {
-        return
-      }
-
       // Edge case for WAVAX
       if (exchangeLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         // WAVAX does not require allowance
@@ -314,6 +309,14 @@ AVMEPanel {
       exchangeInfo["pairs"] = ([]);
       exchangeInfo["routing"] = ([]);
       exchangeInfo["reserves"] = ([]);
+
+      // Prevent selecting the same two assets
+      if (exchangeInfo["right"]["contract"] == exchangeLeftAssetCombobox.chosenAsset.address) {
+        exchangeRightAssetCombobox.currentIndex = (exchangeLeftAssetCombobox.currentIndex == 0) ? 1 : 0
+        exchangeRightAssetCombobox.activated(exchangeRightAssetCombobox.currentIndex)
+        return
+      }
+
       updateDisplay()
       fetchAllowanceAndPairs(true)
     }
@@ -324,11 +327,6 @@ AVMEPanel {
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (exchangeInfo["right"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
-        return
-      }
-
-      // Do not allow to set a swap between the same assets
-      if (exchangeInfo["left"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
         return
       }
 
@@ -357,6 +355,14 @@ AVMEPanel {
       exchangeInfo["pairs"] = ([]);
       exchangeInfo["routing"] = ([]);
       exchangeInfo["reserves"] = ([]);
+
+      // Prevent selecting the same two assets
+      if (exchangeInfo["left"]["contract"] == exchangeRightAssetCombobox.chosenAsset.address) {
+        exchangeLeftAssetCombobox.currentIndex = (exchangeRightAssetCombobox.currentIndex == 0) ? 1 : 0
+        exchangeLeftAssetCombobox.activated(exchangeLeftAssetCombobox.currentIndex)
+        return
+      }
+
       updateDisplay()
       fetchAllowanceAndPairs(true)
     }
