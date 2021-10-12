@@ -167,11 +167,6 @@ AVMEPanel {
         return
       }
 
-      // Do not allow to set a swap between the same assets
-      if (removeLiquidityInfo["right"]["contract"] == removeLiquidityLeftAssetCombobox.chosenAsset.address) {
-        return
-      }
-
       // Edge case for WAVAX
       if (removeLiquidityLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         removeLiquidityInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
@@ -195,6 +190,14 @@ AVMEPanel {
       removeLiquidityInfo["left"]["imageSource"] = img
       removeLiquidityInfo["pair"] = ""
       removeLiquidityInfo["reserves"] = ({});
+
+      // Prevent selecting the same two assets
+      if (removeLiquidityInfo["right"]["contract"] == removeLiquidityLeftAssetCombobox.chosenAsset.address) {
+        removeLiquidityRightAssetCombobox.currentIndex = (removeLiquidityLeftAssetCombobox.currentIndex == 0) ? 1 : 0
+        removeLiquidityRightAssetCombobox.activated(removeLiquidityRightAssetCombobox.currentIndex)
+        return
+      }
+
       updateDisplay()
     }
   }
@@ -204,11 +207,6 @@ AVMEPanel {
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (removeLiquidityInfo["right"]["contract"] == removeLiquidityRightAssetCombobox.chosenAsset.address) {
-        return
-      }
-
-      // Do not allow to set a swap between the same assets
-      if (removeLiquidityInfo["left"]["contract"] == removeLiquidityRightAssetCombobox.chosenAsset.address) {
         return
       }
 
@@ -235,6 +233,14 @@ AVMEPanel {
       removeLiquidityInfo["right"]["imageSource"] = img
       removeLiquidityInfo["pair"] = "";
       removeLiquidityInfo["reserves"] = ({});
+
+      // Prevent selecting the same two assets
+      if (removeLiquidityInfo["left"]["contract"] == removeLiquidityRightAssetCombobox.chosenAsset.address) {
+        removeLiquidityLeftAssetCombobox.currentIndex = (removeLiquidityRightAssetCombobox.currentIndex == 0) ? 1 : 0
+        removeLiquidityLeftAssetCombobox.activated(removeLiquidityLeftAssetCombobox.currentIndex)
+        return
+      }
+
       updateDisplay()
     }
   }

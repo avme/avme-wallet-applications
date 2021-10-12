@@ -185,11 +185,6 @@ AVMEPanel {
         return
       }
 
-      // Do not allow to set a swap between the same assets
-      if (addLiquidityInfo["right"]["contract"] == addLiquidityLeftAssetCombobox.chosenAsset.address) {
-        return
-      }
-
       // Edge case for WAVAX
       if (addLiquidityLeftAssetCombobox.chosenAsset.address == "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7") {
         addLiquidityInfo["left"]["allowance"] = qmlApi.MAX_U256_VALUE(); // WAVAX does not require allowance
@@ -213,6 +208,14 @@ AVMEPanel {
       addLiquidityInfo["left"]["imageSource"] = img
       addLiquidityInfo["pair"] = ""
       addLiquidityInfo["reserves"] = ({});
+
+      // Prevent selecting the same two assets
+      if (addLiquidityInfo["right"]["contract"] == addLiquidityLeftAssetCombobox.chosenAsset.address) {
+        addLiquidityRightAssetCombobox.currentIndex = (addLiquidityLeftAssetCombobox.currentIndex == 0) ? 1 : 0
+        addLiquidityRightAssetCombobox.activated(addLiquidityRightAssetCombobox.currentIndex)
+        return
+      }
+
       updateDisplay()
       fetchAllowancesAndPair(true)
     }
@@ -223,11 +226,6 @@ AVMEPanel {
     function onActivated() {
       // No need to reload in case of the same asset is selected
       if (addLiquidityInfo["right"]["contract"] == addLiquidityRightAssetCombobox.chosenAsset.address) {
-        return
-      }
-
-      // Do not allow to set a swap between the same assets
-      if (addLiquidityInfo["left"]["contract"] == addLiquidityRightAssetCombobox.chosenAsset.address) {
         return
       }
 
@@ -254,6 +252,14 @@ AVMEPanel {
       addLiquidityInfo["right"]["imageSource"] = img
       addLiquidityInfo["pair"] = "";
       addLiquidityInfo["reserves"] = ({});
+
+      // Prevent selecting the same two assets
+      if (addLiquidityInfo["left"]["contract"] == addLiquidityRightAssetCombobox.chosenAsset.address) {
+        addLiquidityLeftAssetCombobox.currentIndex = (addLiquidityRightAssetCombobox.currentIndex == 0) ? 1 : 0
+        addLiquidityLeftAssetCombobox.activated(addLiquidityLeftAssetCombobox.currentIndex)
+        return
+      }
+
       updateDisplay()
       fetchAllowancesAndPair(true)
     }
