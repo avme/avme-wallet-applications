@@ -21,7 +21,7 @@ Item {
       "/v1/43114/getNftsUser/"+accountHeader.currentAddress,
       "GET",
       "",
-      "mp7"
+      "getnftsuser"
     )
   }
 
@@ -30,7 +30,7 @@ Item {
   Connections {
     target: qmlApi
     function onCustomApiRequestAnswered(answer, requestID) {
-      if (requestID == "mp7") {
+      if (requestID == "getnftsuser") {
         loadingNfts.visible = false
         textLoading.visible = false
         var response = JSON.parse(answer)
@@ -87,7 +87,7 @@ Item {
       Text {
         id: textAddress
         color: "#FFF"
-        font.pixelSize: 14.0
+        font.pixelSize: 18.0
         anchors.horizontalCenter: parent.horizontalCenter
         horizontalAlignment: Text.AlignHCenter
         text: selectedItem != null ? "<b>Adress</b>: <br>"+selectedItem.itemAddress : ""
@@ -98,14 +98,6 @@ Item {
         font.pixelSize: 18.0
         anchors.horizontalCenter: parent.horizontalCenter
         text: selectedItem != null ? "<b>Token ID</b>: "+selectedItem.itemId : ""
-      }
-      Text {
-        id: textUri
-        color: "#FFF"
-        font.pixelSize: 14.0
-        anchors.horizontalCenter: parent.horizontalCenter
-        horizontalAlignment: Text.AlignHCenter
-        text: selectedItem != null ? "<b>Token URI</b>: <br>"+selectedItem.itemUri : ""
       }
       AVMEButton {
         id: btnExplorer
