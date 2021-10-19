@@ -23,6 +23,22 @@
       "major": 1,
       "minor": 0,
       "patch": 0
+    },
+    {
+      "chainId": 43114,
+      "folder": "LydiaFinanceDEX",
+      "name": "Lydia Finance DEX",
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    },
+    {
+      "chainId": 43114,
+      "folder": "PartySwapDEX",
+      "name": "Party Swap DEX",
+      "major": 1,
+      "minor": 0,
+      "patch": 0
     }
   ]
 }
