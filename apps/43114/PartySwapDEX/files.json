@@ -1,0 +1,12 @@
+{
+  "files": [
+    "components/AddLiquidityPanel.qml",
+    "components/RemoveLiquidityPanel.qml",
+    "components/SideMenu.qml",
+    "images/exchangeLogo.png",
+    "screen/ExchangeScreen.qml",
+    "screen/LiquidityScreen.qml",
+    "screen/qmldir"
+  ]
+}
+
