@@ -1,6 +1,6 @@
 /* Copyright (c) 2020-2021 AVME Developers
    Distributed under the MIT/X11 software license, see the accompanying
-   file LICENSE or http://www.opensource.org/licenses/mit-license.php. 
+   file LICENSE or http://www.opensource.org/licenses/mit-license.php.
    Author: ProDesert22                             */
 
 import QtQuick 2.9
@@ -10,11 +10,11 @@ import "components" as Components
 import "qrc:/qml/components"
 
 Item {
-  id: nftsUserTemplateMain 
-  
+  id: nftsUserTemplateMain
+
   function reloadTokens() {
     nftList.clear();
-    qmlApi.doCustomHttpRequest( 
+    qmlApi.doCustomHttpRequest(
       "",
       "teste-api-fractional.herokuapp.com",
       443,
@@ -90,7 +90,7 @@ Item {
         font.pixelSize: 18.0
         anchors.horizontalCenter: parent.horizontalCenter
         horizontalAlignment: Text.AlignHCenter
-        text: selectedItem != null ? "<b>Adress</b>: <br>"+selectedItem.itemAddress : ""
+        text: selectedItem != null ? "<b>Address</b>: <br>"+selectedItem.itemAddress : ""
       }
       Text {
         id: textId
@@ -103,7 +103,7 @@ Item {
         id: btnExplorer
         anchors.horizontalCenter: parent.horizontalCenter
         onClicked: Qt.openUrlExternally("https://cchain.explorer.avax.network/tokens/"+selectedItem.itemAddress+"/instance/"+selectedItem.itemId+"/token-transfers")
-        text: "View in C-Chain explorer"
+        text: "View in C-Chain Explorer"
         width: (parent.width * 0.4)
       }
     }
@@ -123,7 +123,7 @@ Item {
     height: parent.height * 0.95
     width: parent.width * 0.95
     anchors.centerIn: parent
-    title: "Your Nft's"
+    title: "Your NFTs"
 
     Text {
       id: textNotFound
@@ -131,7 +131,7 @@ Item {
       font.pixelSize: 20.0
       anchors.centerIn: parent
       horizontalAlignment: Text.AlignHCenter
-      text: "<b>Not Found NFTs<b/>"
+      text: "<b>No NFTs Found<b/>"
       visible: false
     }
 
@@ -141,7 +141,7 @@ Item {
       font.pixelSize: 20.0
       anchors.centerIn: parent
       horizontalAlignment: Text.AlignHCenter
-      text: "<b>Loading ...<b/>"
+      text: "<b>Loading...<b/>"
     }
 
     Image {
