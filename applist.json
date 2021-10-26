@@ -39,6 +39,14 @@
       "major": 1,
       "minor": 0,
       "patch": 1
+    },
+    {
+      "chainId": 43114,
+      "folder": "CanaryDEX",
+      "name": "Canary DEX",
+      "major": 1,
+      "minor": 0,
+      "patch": 0
     }
   ]
 }
