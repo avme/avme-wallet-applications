@@ -47,6 +47,14 @@
       "major": 1,
       "minor": 0,
       "patch": 0
+    },
+    {
+      "chainId": 43114,
+      "folder": "ElkFinanceDEX",
+      "name": "Elk Finance DEX",
+      "major": 1,
+      "minor": 0,
+      "patch": 0
     }
   ]
 }
