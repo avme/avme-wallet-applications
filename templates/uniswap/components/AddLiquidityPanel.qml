@@ -505,7 +505,7 @@ AVMEPanel {
     info = "You will approve <b>"
     + addLiquidityInfo["left"]["symbol"] + "/" + addLiquidityInfo["right"]["symbol"]
     + "</b> LP in + " + exchangeName + " router contract"
-    historyInfo = "Approve <b>" + removeLiquidityInfo["left"]["symbol"] + "/" + removeLiquidityInfo["right"]["symbol"]  + " LP</b> in " + exchangeName
+    historyInfo = "Approve <b>" + addLiquidityInfo["left"]["symbol"] + "/" + addLiquidityInfo["right"]["symbol"]  + " LP</b> in " + exchangeName
     ethCallJson["function"] = "approve(address,uint256)"
     ethCallJson["args"] = []
     ethCallJson["args"].push(router)

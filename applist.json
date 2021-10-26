@@ -6,7 +6,7 @@
       "name": "Pangolin DEX",
       "major": 1,
       "minor": 0,
-      "patch": 0
+      "patch": 1
     },
     {
       "chainId": 43114,
@@ -14,7 +14,7 @@
       "name": "Trader Joe DEX",
       "major": 1,
       "minor": 0,
-      "patch": 0
+      "patch": 1
     },
     {
       "chainId": 43114,
@@ -30,7 +30,7 @@
       "name": "Lydia Finance DEX",
       "major": 1,
       "minor": 0,
-      "patch": 0
+      "patch": 1
     },
     {
       "chainId": 43114,
@@ -38,7 +38,7 @@
       "name": "Party Swap DEX",
       "major": 1,
       "minor": 0,
-      "patch": 0
+      "patch": 1
     }
   ]
 }
