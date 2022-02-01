@@ -8,7 +8,7 @@ Requests on the `QmlApi` class are first *built*, then *made*.
 
 ### Building requests
 
-First, call one (or more) of the [request builder](docs/api-reference.md#request-builders) functions, according to what you want to do. Those functions will build their respective requests and queue them into an internal list, *at the order you called them*.
+First, call one (or more) of the [request builder](api-reference.md#request-builders) functions, according to what you want to do. Those functions will build their respective requests and queue them into an internal list, *at the order you called them*.
 
 Every request builder function requires a `requestID`, which is an identifier string for grouping several requests into one batch. You can put anything here, *as long as the identifier is unique*.
 
@@ -26,7 +26,7 @@ qmlApi.buildGetTokenBalanceReq("0x0", "0x5", "queryID1")
 
 *Remember the order*. If you want "0x3" to be queried first, or "0x1" to be called last, for example, then change your call order accordingly. This is important because *API answers can return unordered*, and to find out which answer is from which request, you'll have to filter them later.
 
-You can use [helper functions](docs/api-reference.md#helper-functions) to aid you with stuff like really big number mathematics and ABI bytecode conversions.
+You can use [helper functions](api-reference.md#helper-functions) to aid you with stuff like really big number mathematics and ABI bytecode conversions.
 
 ### Making requests
 
@@ -38,7 +38,7 @@ All requests with the given ID are automatically cleared from the list once the 
 
 ## Receiving request data
 
-When the request batch returns, a [signal](docs/api-reference.md#signals) called `apiRequestAnswered()` is emitted with the data from all requests made under the previously specified ID.
+When the request batch returns, a [signal](api-reference.md#signals) called `apiRequestAnswered()` is emitted with the data from all requests made under the previously specified ID.
 
 To receive said data when it arrives, use QML's [Connections](https://doc.qt.io/qt-5/qml-qtqml-connections.html) object to filter the IDs you've used and get the request data for them.
 
