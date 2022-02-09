@@ -28,8 +28,8 @@ Item {
 
   AVMEAsyncImage {
     id: logoBg
-    width: 500
-    height: 500
+    width: 300
+    height: 300
     z: 0
     anchors { left: parent.left; bottom: parent.bottom; margins: 50 }
     imageOpacity: 0.15
